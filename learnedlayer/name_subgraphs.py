@@ -6,6 +6,9 @@ logger = logging.getLogger(__name__)
 from sklearn.linear_model import SGDClassifier
 from graphlearn import utils
 from collections import defaultdict
+from sklearn.neighbors import NearestNeighbors
+from sklearn.cluster import DBSCAN
+
 
 class ClusterClassifier():
     def __init__(self,debug=False):
@@ -43,7 +46,7 @@ class ClusterClassifier():
 
 
         # use sklearn NN
-        neigh = sklearn.neighbors.NearestNeighbors(n_neighbors=NTH_NEIGHBOR+1, metric='euclidean')
+        neigh = NearestNeighbors(n_neighbors=NTH_NEIGHBOR+1, metric='euclidean')
         neigh.fit(data)
         dist, indices = neigh.kneighbors(data)
         #print dist
@@ -55,7 +58,7 @@ class ClusterClassifier():
         #dist = 1.09
 
         # build DBSCAN
-        scan = sklearn.cluster.DBSCAN(eps=dist, min_samples=2)
+        scan = DBSCAN(eps=dist, min_samples=2)
         self.cluster_ids = scan.fit_predict(data)
 
         # filter clusters that are too small or too large , NOT NOW
