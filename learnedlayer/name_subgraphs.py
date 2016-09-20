@@ -8,11 +8,12 @@ from graphlearn import utils
 from collections import defaultdict
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
-
+from eden.graph import Vectorizer
 
 class ClusterClassifier():
-    def __init__(self,debug=False):
+    def __init__(self,debug=False, vectorizer=Vectorizer()):
         self.debug=debug
+        self.vectorizer=vectorizer
 
     def fit(self, subgraphs):
         '''
@@ -21,7 +22,7 @@ class ClusterClassifier():
         3. use DBSCAN clusters to train SGDClassifier
         '''
 
-        data, subgraphs = utils.unique_graphs(subgraphs,eden.graph.Vectorizer())
+        data, subgraphs = utils.unique_graphs(subgraphs,self.vectorizer)
 
         # just make sure to have a backup for now
         self.data = data

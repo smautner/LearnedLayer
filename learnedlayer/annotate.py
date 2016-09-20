@@ -9,9 +9,9 @@ import multiprocessing as mp
 
 class Annotator():
 
-    def __init__(self, multiprocess=True, score_attribute='importance'):
+    def __init__(self, multiprocess=True, score_attribute='importance',vectorizer=eden.graph.Vectorizer()):
         self.score_attribute=score_attribute
-        self.vectorizer=Vectorizer()
+        self.vectorizer=vectorizer
         self.multi_process=multiprocess
         self.trained=False
 
@@ -37,23 +37,24 @@ class Annotator():
 
     def fit_transform(self,graphs_p, graphs_n=[]):
         self.fit(graphs_p,graphs_n)
-        return self.transform(graphs_p),self.transform(graphs_n)
+        return self.transform(graphs_p+graphs_n)
 
     def transform(self,graphs):
         return  self.annotate(graphs)
 
-    def annotate(self,graphs,neg=False):
+    def annotate(self,graphs):
         if not graphs:
             return []
         return mass_annotate_mp(graphs,self.vectorizer,score_attribute=self.score_attribute,estimator=self.estimator,
-                                multi_process=self.multi_process, invert_score=neg)
+                                multi_process=self.multi_process)
 
 
 
-def mass_annotate_mp(inputs, vectorizer, score_attribute='importance', estimator=None, multi_process=False, invert_score=False):
+def mass_annotate_mp(inputs, vectorizer, score_attribute='importance', estimator=None, multi_process=False):
     '''
     graph annotation is slow. i dont want to do it twice in fit and predict :)
     '''
+
     #  1st check if already annotated
     if inputs[0].graph.get('mass_annotate_mp_was_here', False):
         return inputs

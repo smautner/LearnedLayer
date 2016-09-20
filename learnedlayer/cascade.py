@@ -3,10 +3,12 @@ automatic minor graph generation
 '''
 import transform
 #import decompose
+import eden
 import graphlearn.utils.draw as draw
 #from sklearn.cluster import MiniBatchKMeans
 #import sklearn.cluster as cluster
 
+from name_subgraphs import ClusterClassifier
 
 class Cascade():
     def __init__(self,  depth=2,
@@ -29,7 +31,8 @@ class Cascade():
         self.transformers = []
         for i in range(self.depth):
             transformer = transform.GraphMinorTransformer(
-
+                vectorizer=eden.graph.Vectorizer(complexity=3,n_jobs=1),
+                cluster_classifier=ClusterClassifier(debug=False,vectorizer=eden.graph.Vectorizer(n_jobs=1)),
                 num_classes=self.num_classes,
                 group_score_threshold= self.group_score_threshold,
                 group_max_size=self.max_group_size,
@@ -49,43 +52,38 @@ class Cascade():
         for g in graphs+graphs_neg:
             g.graph['layer']=0
 
+
+        numpos=len(graphs)
+        graphs+=graphs_neg
         # fitting
         for i in range(self.depth):
-            if self.num_classes==2:
-                graphs, graphs_neg = self.transformers[i].fit_transform(graphs,graphs_neg)
-            else:
-                graphs = self.transformers[i].fit_transform(graphs)
-
+            graphs = self.transformers[i].fit_transform(graphs[:numpos], graphs[numpos:])
         if remove_intermediary_layers:
-            graphs,graphs_neg= self.do_remove_intermediary_layers(graphs,graphs_neg)
-
-
+            graphs = self.do_remove_intermediary_layers(graphs)
         #print graphs, graphs_neg, self.num_classes
-        return graphs if self.num_classes==1 else (graphs,graphs_neg)
+        return graphs
 
     def fit(self, graphs, g2=[]):
         self.fit_transform(graphs,g2)
         return self
 
-    def transform(self, graphs,g2=[], remove_intermediary_layers=True):
-        for g in graphs+g2:
+    def transform(self, graphs, remove_intermediary_layers=True):
+        for g in graphs:
             g.graph['layer']=0
         for i in range(self.depth):
             graphs = self.transformers[i].transform(graphs)
-        for i in range(self.depth):
-            g2 = self.transformers[i].transform(g2)
 
         if remove_intermediary_layers:
-            graphs,g2= self.do_remove_intermediary_layers(graphs,g2)
+            graphs= self.do_remove_intermediary_layers(graphs)
         #if self.num_classes == 2:
         #    return graphs,g2
         #else:
         #    return graphs
 
-        return (graphs,g2) if self.num_classes==2 else graphs
+        return graphs
 
-    def  do_remove_intermediary_layers(self, graphs,g2=[]): # transform and remove intermediary layers
-        return map(self.remove_intermediary_layers,graphs),map(self.remove_intermediary_layers , g2)
+    def  do_remove_intermediary_layers(self, graphs): # transform and remove intermediary layers
+        return map(self.remove_intermediary_layers,graphs)
 
     def remove_intermediary_layers(self,graph):
         def rabbithole(g, n):
