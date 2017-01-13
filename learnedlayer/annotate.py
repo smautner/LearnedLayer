@@ -4,7 +4,21 @@ from sklearn.linear_model import SGDClassifier
 from graphlearn.estimate import ExperimentalOneClassEstimator
 import eden
 import multiprocessing as mp
+import numpy as np
 
+class twoclass(SGDClassifier):
+    # eden cant annotate two classes if the esti is not a sgdregressor
+    #  -> this hack is made!
+    '''
+    details: decission function returns a one d array.
+    eden only accepts these if the estimater is instance of sgdregressor.
+    so i make a two d array from my 1 d array.
+    if i hack something like this in the future maybe the intercept array needs to be provided..
+    (see the annotator code)
+    '''
+    def decision_function(self, vector):
+        answer =  super(self.__class__,self).decision_function(vector)
+        return np.vstack((answer, (answer-1))).T
 
 
 class Annotator():
@@ -26,7 +40,7 @@ class Annotator():
 
         if graphs_neg:
             #print 'choosing to train binary esti'
-            self.estimator = SGDClassifier()
+            self.estimator = twoclass() #SGDClassifier()
             classes= [1]*len(graphs_pos)+[-1]*len(graphs_neg)
             self.estimator.fit(self.vectorizer.transform(graphs_pos+graphs_neg),classes)
         else:

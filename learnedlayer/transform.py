@@ -73,7 +73,7 @@ class GraphMinorTransformer(GraphTransformer):
             layer=self.layer,
             vectorizer=self.vectorizer)
 
-        self.annotator = annotate.Annotator(vectorizer=self.vectorizer)
+        self.annotator = annotate.Annotator(vectorizer=self.vectorizer,multiprocess=False)
 
     def fit(self, graphs, graphs_neg=[], fit_transform=False):
         '''
@@ -129,6 +129,7 @@ class GraphMinorTransformer(GraphTransformer):
         return self.fit(inputs, inputs_neg, fit_transform=True)
 
     def re_transform_single(self, graph):
+
         # graphlearn is giving me expanded graphs afaik
         return self.transform([eden.graph._revert_edge_to_vertex_transform(graph)])[0]
 
