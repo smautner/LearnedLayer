@@ -317,7 +317,7 @@ if __name__ == '__main__':
     # evaluate results...
     for s in graphs_chem:
         # error vectorize, test
-        data = [ test( data_chem[0][0]['oracle'], vectorize(problem))[1] for problem in problem_list for problem_list in graphs_chem ]
+        data = [ test( data_chem[0][0]['oracle'], vectorize(problem))[1] for problem_list in graphs_chem for problem in problem_list ]
         data = transpose(data)
 
         # they are ordered by repeats now.
