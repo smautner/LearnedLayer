@@ -215,6 +215,14 @@ def make_inbetween_plot(labels=[50,100,150],means=[(20, 35, 40),(20, 40 , 60)],s
 
 ###################################################################
 
+
+class output_corrected_graphlearn(graphlearn.graphlearn.Sampler):
+    def _return_formatter(self, graphlist, mon):
+        for e in graphlist:
+            yield e
+
+
+
 def make_samplers_chem():
     '''
     :return:
@@ -222,10 +230,10 @@ def make_samplers_chem():
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
     # normal
-    samplers=[graphlearn.graphlearn.Sampler(n_steps=50)]
+    samplers=[output_corrected_graphlearn(n_steps=50)]
 
     # hand abstr
-    sampler = graphlearn.graphlearn.Sampler(
+    sampler =output_corrected_graphlearn(
         select_cip_max_tries=100,
         size_constrained_core_choice=5,
                 # i changed the defaults for the strategy... it seems that
@@ -295,13 +303,14 @@ if __name__ == '__main__':
                    test_size_per_class=300,
                    pick_strategy='cluster') # cluster random  highscoring
 
-    graphs_chem = [[[ len(problem_dict['graphs_train'])
-                      for problem_dict in repeat ]
-                    for repeat in data_chem ]
-                   for s in samplers_chem ]
-    print graphs_chem
 
-    graphs_chem = [[[ len(list(s.fit_transform(problem_dict['graphs_train'])))
+    #graphs_chem = [[[ len(problem_dict['graphs_train'])
+    #                  for problem_dict in repeat ]
+    #                for repeat in data_chem ]
+    #                   for s in samplers_chem ]
+
+
+    graphs_chem = [[[ list(s.fit_transform(problem_dict['graphs_train']))
                     for problem_dict in repeat ]
                         for repeat in data_chem ]
                             for s in samplers_chem ]
