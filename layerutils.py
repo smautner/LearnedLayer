@@ -30,8 +30,8 @@ from sklearn.cluster import KMeans
 
 
 import matplotlib.pyplot as plt
-download_active = curry(download)(active=True,stepsize=500) # default stepsize = 50 (way to few)
-download_inactive = curry(download)(active=False,stepsize=500)
+download_active = curry(download)(active=True,stepsize=50) # default stepsize = 50 (way to few)
+download_inactive = curry(download)(active=False,stepsize=50)
 
 
 def vectorize(thing):
@@ -79,10 +79,9 @@ def get_data(assay_id):
 
 def make_data(assay_id,repeats=3,
               trainclass=1,
-              train_size=50,
+              train_sizes=[50],
               not_train_class=-1,
               test_size_per_class=300,
-              neg_vec_count=1000,
               pick_strategy='random'):
     '''
     :param assay_id:
@@ -97,6 +96,7 @@ def make_data(assay_id,repeats=3,
             "highest scoring "
             "cluster"
     :return:
+    [trainsize_i]*repeats
     '''
 
     #   [(test), test_trained_esti, train_graphs] for each repeat
@@ -109,7 +109,8 @@ def make_data(assay_id,repeats=3,
     esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
     esti.fit(X,y)
 
-    def get_run(neg_vec_count):
+    def get_run( train_size):
+        neg_vec_count = train_size
         # get train items
         possible_train_ids = np.where(y == trainclass)[0]
 
@@ -143,10 +144,6 @@ def make_data(assay_id,repeats=3,
 
         train_graphs = list(selection_iterator(graphs, train_ids.tolist()))
 
-
-
-
-
         # MAKE THE DATA
         possible_test_ids_1 = np.array(list( set(possible_train_ids) - set(train_ids)))
         possible_test_ids_0 = np.where(y == not_train_class)[0]
@@ -167,7 +164,7 @@ def make_data(assay_id,repeats=3,
         #esti.fit(X_test,Y_test)
         return {'X_test':X_test,'y_test':Y_test,'oracle':esti,'graphs_train':train_graphs,'neg_vecs':neg_vecs}
 
-    return [get_run(neg_vec_count) for i in range(repeats)]
+    return [ [get_run(ts) for ts in train_sizes] for i in range(repeats)]
 
 
 ############################################################################
@@ -270,7 +267,7 @@ assay_id = '1834'  # apr90 500 mols
 assay_id = '651610'  # apr93 23k mols
 repeats = 3
 n_iter = 25
-train_size = 1000
+train_sizes = [20,50,100,200,500,750,1000]
 
 '''
 THE PLAN IS SIMPLE
@@ -288,22 +285,47 @@ if __name__ == '__main__':
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
         n_iter = 2
-        train_size=20
+        train_sizes= [20,30]
 
     samplers_chem = make_samplers_chem()
     data_chem  = make_data(assay_id,
                    repeats=repeats,
                    trainclass=1,
-                   train_size=train_size,
-                   neg_vec_count=train_size, # includes negatives, will only be used with gen_training_2 see below
+                   train_sizes=train_sizes,
                    test_size_per_class=300,
                    pick_strategy='cluster') # cluster random  highscoring
-    graphs_chem = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_chem for problem in data_chem ]
+
+    graphs_chem = [[[ len(problem_dict['graphs_train'])
+                      for problem_dict in repeat ]
+                    for repeat in data_chem ]
+                   for s in samplers_chem ]
+    print graphs_chem
+
+    graphs_chem = [[[ len(list(s.fit_transform(problem_dict['graphs_train'])))
+                    for problem_dict in repeat ]
+                        for repeat in data_chem ]
+                            for s in samplers_chem ]
+    print graphs_chem
+
+    # s-> [123,123]
+
+    # do the same for RNA .. later
+    #samplers_rna = make_samplers_rna()
+    #data_rna = make_data_rna()
+    #graphs_rna = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_rna for problem in data_rna ]
+
+    # evaluate results...
+    for s in graphs_chem:
+        # error vectorize, test
+        data = [ test( data_chem[0][0]['oracle'], vectorize(problem))[1] for problem in problem_list for problem_list in graphs_chem ]
+        data = transpose(data)
+
+        # they are ordered by repeats now.
+        for row in data:
+            row = [e for e in l2 for l2 in row]
+            print np.mean(row)
 
 
-    samplers_rna = make_samplers_rna()
-    data_rna = make_data_rna()
-    graphs_rna = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_rna for problem in data_rna ]
 
 
 
