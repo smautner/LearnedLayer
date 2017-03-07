@@ -172,18 +172,21 @@ def make_data(assay_id,repeats=3,
 
 import numpy as np
 import matplotlib.pyplot as plt
-def make_inbetween_plot(labels=[50,100,150],means=[(20, 35, 40),(20, 40 , 60)],stds=[(2, 3,5),(3, 3,3)]):
+def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .60),(.20,.25,.30)],stds=[(.2, .3,.5),(.3, .3,.3),(.5,.5,.5)]):
+
     #N = len(labels)
     #ind = np.arange(N) 
     #width = 0.35
+
+
     plt.figure(figsize=(14, 5))
     fig, ax = plt.subplots()
     for label in (ax.get_xticklabels() + ax.get_yticklabels()):
         label.set_fontname('Arial')
         label.set_fontsize(14)
     #ax.ylim(0.0,100)
-    plt.ylim(-5,80)
-    plt.xlim(0,400)
+    plt.ylim(-.5,1.5)
+    plt.xlim(0,1000)
 
     
     def fillthing(y,std,label='some label',col='b'):
@@ -193,22 +196,21 @@ def make_inbetween_plot(labels=[50,100,150],means=[(20, 35, 40),(20, 40 , 60)],s
         #ax.plot(labels,y,label=label,color='gray')
         ax.plot(labels,y,color='gray')
         
-    #ax.errorbar(labels, means[0], yerr= stds[0], fmt='o')
-    #ax.errorbar(labels, means[1], yerr= stds[1], fmt='x')
     fillthing(means[0],stds[0],col='#6A9AE2')
-    #fillthing(means[1],stds[1],col='#8DDD82')# some green.. maybe use yellow..
     fillthing(means[1],stds[1],col='#F94D4D')
-    
-    ax.plot(labels,means[0],label='extended grammar',color='b',linewidth=2.0)
-    ax.plot(labels,means[1],label='normal grammar',color='r',linewidth=2.0)
+    fillthing(means[2],stds[2],col='#555555')
+
+    ax.plot(labels,means[0],label='default',color='b',linewidth=2.0)
+    ax.plot(labels,means[1],label='hand',color='r',linewidth=2.0)
+    ax.plot(labels,means[2],label='learned',color='black',linewidth=2.0)
     #ax.plot(labels,infernal,label='Infernal',color='#3F3F3F',linewidth=2.0,ls='--')
-    plt.axhline(y=38, color='black',linewidth=2,ls='dotted')
+    #plt.axhline(y=38, color='black',linewidth=2,ls='dotted')
     
     # add some text for labels, title and axes ticks
     labelfs=16
-    ax.set_ylabel('Infernal bit score',fontsize=labelfs)
-    ax.set_xlabel('training sequences',fontsize=labelfs)
-    ax.legend(loc='lower left')
+    ax.set_ylabel('score (by oracle)',fontsize=labelfs)
+    ax.set_xlabel('number of seeds given',fontsize=labelfs)
+    ax.legend(loc='upper left')
 
     plt.show()
 
@@ -257,6 +259,33 @@ def make_samplers_chem():
 
 ###################################################################
 
+def run_experiments(samplers, data):
+    return  [[[ list(s.fit_transform(problem_dict['graphs_train']))
+                      for problem_dict in repeat ]
+                    for repeat in data]
+                   for s in samplers]
+def evaluate(graphs, task_data):
+    means = []
+    stds = []
+    # evaluate results...
+    for s in graphs: # s stands for sampler.. its the result for a single sampla
+        # error vectorize, test
+        data = [[ test( task_data[0][0]['oracle'], vectorize(outgraphs))[1]
+                  for outgraphs in repeats ]
+                for repeats in s]
+        # they are ordered by repeats now.
+        data = transpose(data)
+        # now they are ordered by seedcount :)
+        res=[]
+        for row in data:
+            row = [e for l2 in row for e in l2] # flatten
+            res.append([np.mean(row),np.std(row)])
+        res=transpose(res)
+
+        means.append(res[0])
+        stds.append(res[1])
+    return means,stds
+
 
 # make a data source
 assay_id = '624466'  # apr88
@@ -302,19 +331,9 @@ if __name__ == '__main__':
                    train_sizes=train_sizes,
                    test_size_per_class=300,
                    pick_strategy='cluster') # cluster random  highscoring
-
-
-    #graphs_chem = [[[ len(problem_dict['graphs_train'])
-    #                  for problem_dict in repeat ]
-    #                for repeat in data_chem ]
-    #                   for s in samplers_chem ]
-
-
-    graphs_chem = [[[ list(s.fit_transform(problem_dict['graphs_train']))
-                    for problem_dict in repeat ]
-                        for repeat in data_chem ]
-                            for s in samplers_chem ]
-    print graphs_chem
+    graphs_chem = run_experiments(samplers_chem,data_chem)
+    means,stds = evaluate(graphs_chem,data_chem)
+    make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
 
     # s-> [123,123]
 
@@ -322,18 +341,6 @@ if __name__ == '__main__':
     #samplers_rna = make_samplers_rna()
     #data_rna = make_data_rna()
     #graphs_rna = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_rna for problem in data_rna ]
-
-    # evaluate results...
-    for s in graphs_chem:
-        # error vectorize, test
-        data = [ test( data_chem[0][0]['oracle'], vectorize(problem))[1] for problem_list in graphs_chem for problem in problem_list ]
-        data = transpose(data)
-
-        # they are ordered by repeats now.
-        for row in data:
-            row = [e for e in l2 for l2 in row]
-            print np.mean(row)
-
 
 
 
