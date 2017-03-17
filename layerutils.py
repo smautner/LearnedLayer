@@ -167,6 +167,10 @@ def make_data(assay_id,repeats=3,
     return [ [get_run(ts) for ts in train_sizes] for i in range(repeats)]
 
 
+
+
+
+
 ############################################################################
 
 
@@ -324,23 +328,23 @@ if __name__ == '__main__':
         n_iter = 2
         train_sizes= [20,30]
 
-    samplers_chem = make_samplers_chem()
-    data_chem  = make_data(assay_id,
-                   repeats=repeats,
-                   trainclass=1,
-                   train_sizes=train_sizes,
-                   test_size_per_class=300,
-                   pick_strategy='cluster') # cluster random  highscoring
-    graphs_chem = run_experiments(samplers_chem,data_chem)
-    means,stds = evaluate(graphs_chem,data_chem)
-    make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
+    if False:
+        samplers_chem = make_samplers_chem()
+        data_chem  = make_data(assay_id,
+                       repeats=repeats,
+                       trainclass=1,
+                       train_sizes=train_sizes,
+                       test_size_per_class=300,
+                       pick_strategy='cluster') # cluster random  highscoring
+        graphs_chem = run_experiments(samplers_chem,data_chem)
+        means,stds = evaluate(graphs_chem,data_chem)
+        make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
 
-    # s-> [123,123]
-
-    # do the same for RNA .. later
-    #samplers_rna = make_samplers_rna()
-    #data_rna = make_data_rna()
-    #graphs_rna = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_rna for problem in data_rna ]
+    if True:
+        # do the same for RNA .. later
+        samplers_rna = make_samplers_rna()
+        #data_rna = make_data_rna()
+        #graphs_rna = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_rna for problem in data_rna ]
 
 
 
