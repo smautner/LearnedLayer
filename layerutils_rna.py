@@ -18,16 +18,22 @@ def make_samplers_rna():
                            )
 
     # forgi transformer
+    # check if calc_contracted_edge_nodes false is not breaking things
     sampler=infernal.AbstractSampler(
                             #radius_list=[0,1],
                             #thickness_list=[2],
                             #min_cip_count=1,
                             #min_interface_count=2,
                             graphtransformer=forgitransform.GraphTransformerForgi(),
-                            decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True),
+                            decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=False),
                             #estimator=estimator
                             #feasibility_checker=feasibility
                             include_seed=False
                            )
 
     # learned samplari!
+    
+
+
+
+
