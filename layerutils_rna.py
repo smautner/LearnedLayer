@@ -2,7 +2,8 @@ from graphlearn.minor.rna.rnadecomposer import RnaDecomposer
 import graphlearn.minor.rna.infernal as infernal
 from graphlearn.minor.rna import forgitransform as forgitransform
 from graphlearn.learnedlayer import cascade
-def make_samplers_rna():
+from graphlearn.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
+def make_samplers_rna(n_jobs=1):
 
     # default sampla
     sampler=infernal.AbstractSampler(
@@ -14,6 +15,7 @@ def make_samplers_rna():
                             #decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True),
                             #estimator=estimator
                             #feasibility_checker=feasibility
+                            n_jobs=n_jobs,
                             include_seed=False
                            )
     samplers=[sampler]
@@ -22,8 +24,12 @@ def make_samplers_rna():
     sampler=infernal.AbstractSampler(
                             #radius_list=[0,1],
                             #thickness_list=[2],
-                            #min_cip_count=1,
-                            #min_interface_count=2,
+                            backtrack=4,
+                            grammar = grammar(
+                                min_cip_count=1,
+                                min_interface_count=2),
+                            n_jobs=n_jobs,
+                            select_cip_max_tries=50,
                             graphtransformer=forgitransform.GraphTransformerForgi(),
                             decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=False),
                             #estimator=estimator
@@ -34,6 +40,7 @@ def make_samplers_rna():
     sampler=infernal.AbstractSampler(
                             #radius_list=[0,1],
                             #thickness_list=[2],
+                            n_jobs=n_jobs,
                             #min_cip_count=1,
                             #min_interface_count=2,
                             graphtransformer= cascade.RNACascade(),

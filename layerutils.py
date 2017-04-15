@@ -177,7 +177,9 @@ def make_data(assay_id,repeats=3,
 import numpy as np
 import matplotlib.pyplot as plt
 def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .60),(.20,.25,.30)],stds=[(.2, .3,.5),(.3, .3,.3),(.5,.5,.5)]):
-
+    '''
+    asdasd 
+    '''
     #N = len(labels)
     #ind = np.arange(N) 
     #width = 0.35
@@ -215,8 +217,9 @@ def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .
     ax.set_ylabel('score (by oracle)',fontsize=labelfs)
     ax.set_xlabel('number of seeds given',fontsize=labelfs)
     ax.legend(loc='upper left')
-
+    plt.savefig("aadsdasdas.png")
     plt.show()
+
 
 
 ###################################################################
@@ -328,7 +331,7 @@ if __name__ == '__main__':
         n_iter = 2
         train_sizes= [20,30]
 
-    if False:
+    if True:
         samplers_chem = make_samplers_chem()
         data_chem  = make_data(assay_id,
                        repeats=repeats,
@@ -340,7 +343,7 @@ if __name__ == '__main__':
         means,stds = evaluate(graphs_chem,data_chem)
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
 
-    if True:
+    if False:
         # do the same for RNA .. later
         samplers_rna = make_samplers_rna()
         #data_rna = make_data_rna()
