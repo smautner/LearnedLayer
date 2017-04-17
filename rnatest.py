@@ -10,7 +10,7 @@ configure_logging(logging.getLogger(),verbosity=2)
 
 
 def run_experiments(data,samplers):
-    samplers=[samplers[1]]
+    samplers=[samplers[2]]
     return [[[[ list(sampler.fit_transform (problem))]
         for problem in repeat]
             for repeat in  data] 
