@@ -44,7 +44,7 @@ def make_samplers_rna(n_jobs=1):
                             #min_cip_count=1,
                             #min_interface_count=2,
                             graphtransformer= cascade.RNACascade(),
-                            decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=False),
+                            decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=True),
                             #estimator=estimator
                             #feasibility_checker=feasibility
                             include_seed=False

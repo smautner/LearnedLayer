@@ -4,13 +4,17 @@ from layerutils_rna import make_samplers_rna
 
 from eden.util import configure_logging
 import logging
-configure_logging(logging.getLogger(),verbosity=2)
+configure_logging(logging.getLogger(),verbosity=3)
 
 
 
 
 def run_experiments(data,samplers):
+
+    #1  one is the forgi
+    #2  two is the learned guy 
     samplers=[samplers[2]]
+
     return [[[[ list(sampler.fit_transform (problem))]
         for problem in repeat]
             for repeat in  data] 
