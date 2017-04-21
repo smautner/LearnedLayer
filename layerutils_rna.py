@@ -3,10 +3,26 @@ import graphlearn.minor.rna.infernal as infernal
 from graphlearn.minor.rna import forgitransform as forgitransform
 from graphlearn.learnedlayer import cascade
 from graphlearn.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
+from graphlearn.minor.rna import get_sequence
+
+
+# moved the class outside the make_samplers_rna function because dill died
+class rna_default_sampler(infernal.AbstractSampler):
+    def _return_formatter(self,graphlist,mon):
+        def graph_to_rna(graph):
+            return ('',get_sequence(graph))
+        def graph_to_rna(graph):
+            return ('',graph.graph['sequence'])
+        self.monitors.append(mon)
+        yield map(graph_to_rna, graphlist)
+            
 def make_samplers_rna(n_jobs=1):
 
     # default sampla
-    sampler=infernal.AbstractSampler(
+
+
+
+    sampler=rna_default_sampler(
                             #radius_list=[0,1],
                             #thickness_list=[2],
                             #min_cip_count=1,

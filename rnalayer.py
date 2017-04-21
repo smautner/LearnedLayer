@@ -38,6 +38,17 @@ def getseqs(allsequences, amount):
     return allsequences[:amount]
     
 
+
+
+
+
+
+
+
+
+
+
+
 # STUFF BELOW SHOULD BE CRAP 
 
 def get_data(rfam_id_1,rfam_id_2):
