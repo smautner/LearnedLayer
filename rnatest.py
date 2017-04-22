@@ -4,7 +4,7 @@ from layerutils_rna import make_samplers_rna
 
 from eden.util import configure_logging
 import logging
-configure_logging(logging.getLogger(),verbosity=1)
+configure_logging(logging.getLogger(),verbosity=2)
 
 
 

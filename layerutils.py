@@ -1,4 +1,5 @@
 from toolz import curry, compose, concat, pipe, first, second, take
+import time
 import matplotlib
 matplotlib.use('Agg')
 from eden_chem.io.pubchem import download
@@ -266,11 +267,20 @@ def make_samplers_chem():
 
 ###################################################################
 
+def runwrap(sampler,graphs):
+    start=time.time()
+    graphs=sampler.fit_transform(graphs)
+    timeused = time.time()- start
+    return (list(graphs),timeused)
+
 def run_experiments(samplers, data):
-    return  [[[ list(s.fit_transform(problem_dict['graphs_train']))
+    # this is bypassing the time annotation:
+    #return  [[[  list(s.fit_transform(problem_dict['graphs_train']))
+    return  [[[ runwrap(s,problem_dict['graphs_train']) 
                       for problem_dict in repeat ]
                     for repeat in data]
                    for s in samplers]
+    
 def evaluate(graphs, task_data):
     means = []
     stds = []
@@ -280,6 +290,7 @@ def evaluate(graphs, task_data):
         data = [[ test( task_data[0][0]['oracle'], vectorize(outgraphs))[1]
                   for outgraphs in repeats ]
                 for repeats in s]
+
         # they are ordered by repeats now.
         data = transpose(data)
         # now they are ordered by seedcount :)
@@ -340,8 +351,12 @@ if __name__ == '__main__':
                        test_size_per_class=300,
                        pick_strategy='cluster') # cluster random  highscoring
         graphs_chem = run_experiments(samplers_chem,data_chem)
+        print graphs_chem
         means,stds = evaluate(graphs_chem,data_chem)
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
+
+
+
 
     if False:
         # do the same for RNA .. later
