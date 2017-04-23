@@ -1,3 +1,7 @@
+'''
+i just wrote this a few weeks back,,, but its horrible.. what was i thinking? 
+i should rewrite this... 
+'''
 from toolz import curry, compose, concat, pipe, first, second, take
 import time
 import matplotlib
@@ -19,17 +23,11 @@ from sklearn.metrics import classification_report
 #from eden_display import plot_aucs
 from sklearn.linear_model import SGDClassifier
 import eden_tricks
-
-
 import graphlearn
 import graphlearn.learnedlayer.cascade as cascade
 import graphlearn.minor.molecule.transform_cycle as mole
 import graphlearn.minor.decompose as decompose
-
-
 from sklearn.cluster import KMeans
-
-
 import matplotlib.pyplot as plt
 download_active = curry(download)(active=True,stepsize=50) # default stepsize = 50 (way to few)
 download_inactive = curry(download)(active=False,stepsize=50)
@@ -43,6 +41,13 @@ def transpose(things):
     return map(list,zip(*things))
 
 def test(estimator, X):
+    '''
+    estimator: predict and predict_proba are required
+    X: ??? 
+
+    returns:
+    [y_pred,y_score]
+    '''
     y_pred = estimator.predict(X)
     y_score = estimator.predict_proba(X)[:, 0]
     return [y_pred, y_score]
@@ -115,8 +120,6 @@ def make_data(assay_id,repeats=3,
         # get train items
         possible_train_ids = np.where(y == trainclass)[0]
 
-
-
         if pick_strategy=='random':
             train_ids = np.random.permutation(possible_train_ids)[:train_size]
         else:
@@ -169,15 +172,12 @@ def make_data(assay_id,repeats=3,
 
 
 
-
-
-
 ############################################################################
 
 
 import numpy as np
 import matplotlib.pyplot as plt
-def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .60),(.20,.25,.30)],stds=[(.2, .3,.5),(.3, .3,.3),(.5,.5,.5)]):
+def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .60),(.20,.25,.30)],stds=[(.2, .3,.5),(.3, .3,.3),(.5,.5,.5)],fname='asd.png',dynamic_ylim=False):
     '''
     asdasd 
     '''
@@ -192,7 +192,10 @@ def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .
         label.set_fontname('Arial')
         label.set_fontsize(14)
     #ax.ylim(0.0,100)
-    plt.ylim(-.5,1.5)
+    if dynamic_ylim:
+        plt.ylim=(0, max(means[-1]) + max(stds[-1]))  
+    else:
+        plt.ylim(-.5,1.5)
     plt.xlim(0,1000)
 
     
@@ -218,7 +221,7 @@ def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .
     ax.set_ylabel('score (by oracle)',fontsize=labelfs)
     ax.set_xlabel('number of seeds given',fontsize=labelfs)
     ax.legend(loc='upper left')
-    plt.savefig("aadsdasdas.png")
+    plt.savefig(fname)
     plt.show()
 
 
@@ -269,9 +272,10 @@ def make_samplers_chem():
 
 def runwrap(sampler,graphs):
     start=time.time()
-    graphs=sampler.fit_transform(graphs)
+    graphs=list(sampler.fit_transform(graphs))
     timeused = time.time()- start
-    return (list(graphs),timeused)
+    
+    return (graphs,timeused)
 
 def run_experiments(samplers, data):
     # this is bypassing the time annotation:
@@ -284,25 +288,35 @@ def run_experiments(samplers, data):
 def evaluate(graphs, task_data):
     means = []
     stds = []
+    means_time=[]
+    stds_time=[]
     # evaluate results...
     for s in graphs: # s stands for sampler.. its the result for a single sampla
         # error vectorize, test
-        data = [[ test( task_data[0][0]['oracle'], vectorize(outgraphs))[1]
-                  for outgraphs in repeats ]
+        data = [[ (test( task_data[0][0]['oracle'], vectorize(outgraphs))[1],time)
+                  for outgraphs,time in repeats ]
                 for repeats in s]
-
         # they are ordered by repeats now.
         data = transpose(data)
         # now they are ordered by seedcount :)
         res=[]
+        res_time=[]
         for row in data:
-            row = [e for l2 in row for e in l2] # flatten
-            res.append([np.mean(row),np.std(row)])
+            print '\n\n\n'
+            print row
+            row,time_row= transpose(row)
+            score_row = [thing for l2 in row for thing in l2] # flatten
+
+            res.append([np.mean(score_row),np.std(score_row)])
+            res_time.append([np.mean(time_row),np.std(time_row)])
         res=transpose(res)
+        res_time=transpose(res_time)
 
         means.append(res[0])
         stds.append(res[1])
-    return means,stds
+        means_time.append(res_time[0])
+        stds_time.append(res_time[1])
+    return means,stds, means_time, stds_time
 
 
 # make a data source
@@ -352,8 +366,11 @@ if __name__ == '__main__':
                        pick_strategy='cluster') # cluster random  highscoring
         graphs_chem = run_experiments(samplers_chem,data_chem)
         print graphs_chem
-        means,stds = evaluate(graphs_chem,data_chem)
+        means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
+        make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='asd_time.png',dynamic_ylim=True)
+
+
 
 
 
@@ -540,8 +557,8 @@ def evaluate_all(data,estis,newgraphs,draw_best=5):
 
 
 
-
-'''
+0
+0'''
 ######################################################################
 
 
