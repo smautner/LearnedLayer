@@ -242,11 +242,12 @@ def make_samplers_chem():
      all 3 samplers have a fit_transform(graphs),....
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
-    # normal
-    samplers=[output_corrected_graphlearn(n_steps=50)]
 
-    # hand abstr
-    sampler =output_corrected_graphlearn(
+    def get_no_abstr():
+        return output_corrected_graphlearn(n_steps=50)
+
+    def get_hand_abstr():
+        return output_corrected_graphlearn(
         select_cip_max_tries=100,
         size_constrained_core_choice=5,
                 # i changed the defaults for the strategy... it seems that
@@ -254,18 +255,20 @@ def make_samplers_chem():
                 # 2. size constraint core choice reduces the error rate compared to by_frequency, (probably)
         decomposer= decompose.MinorDecomposer(),
         graphtransformer= mole.GraphTransformerCircles())
-    samplers.append(sampler)
+        
 
-
-    # learned abstr
-    sampler = cascade.Cascade(depth=2,
-                              debug=False,
+    def get_casc_abstr():
+        return cascade.Cascade(depth=2,
+                              debug=True,
                               multiprocess=True,
                               max_group_size=6,
                               min_group_size=2,
                               num_classes=2)
-    samplers.append(sampler)
-
+        
+    #samplers=[get_no_abstr(),get_hand_abstr(),get_casc_abstr()]
+    
+    samplers=[get_casc_abstr() for i in range(3)]
+    print 'samplers are fake atm'
     return samplers
 
 ###################################################################
@@ -302,8 +305,6 @@ def evaluate(graphs, task_data):
         res=[]
         res_time=[]
         for row in data:
-            print '\n\n\n'
-            print row
             row,time_row= transpose(row)
             score_row = [thing for l2 in row for thing in l2] # flatten
 
@@ -365,7 +366,6 @@ if __name__ == '__main__':
                        test_size_per_class=300,
                        pick_strategy='cluster') # cluster random  highscoring
         graphs_chem = run_experiments(samplers_chem,data_chem)
-        print graphs_chem
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
         make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='asd_time.png',dynamic_ylim=True)
