@@ -5,7 +5,7 @@ i should rewrite this...
 from toolz import curry, compose, concat, pipe, first, second, take
 import time
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 from eden_chem.io.pubchem import download
 from eden.graph import Vectorizer
 import numpy as np
@@ -33,8 +33,15 @@ download_active = curry(download)(active=True,stepsize=50) # default stepsize = 
 download_inactive = curry(download)(active=False,stepsize=50)
 
 
+from eden.util import configure_logging
+import logging
+configure_logging(logging.getLogger(),verbosity=3)
+
+
 def vectorize(thing):
     v = Vectorizer()
+    if not thing:
+        raise Exception( "need something to vectirize.. received %s" % str(thing))
     return v.transform(thing)
 
 def transpose(things):
@@ -235,6 +242,33 @@ class output_corrected_graphlearn(graphlearn.graphlearn.Sampler):
             yield e
 
 
+def get_no_abstr():
+    return output_corrected_graphlearn(n_steps=50)
+
+def get_hand_abstr():
+    return output_corrected_graphlearn(
+    select_cip_max_tries=100,
+    size_constrained_core_choice=5,
+            # i changed the defaults for the strategy... it seems that
+            # 1. size constraint is not combinable with the other chip choice plans
+            # 2. size constraint core choice reduces the error rate compared to by_frequency, (probably)
+    decomposer= decompose.MinorDecomposer(),
+    graphtransformer= mole.GraphTransformerCircles())
+    
+
+def get_casc_abstr():
+    mycascade = cascade.Cascade(depth=2,
+                          debug=False,
+                          multiprocess=True,
+                          max_group_size=6,
+                          min_group_size=2,
+                          num_classes=2)
+
+    return output_corrected_graphlearn(
+    select_cip_max_tries=100,
+    size_constrained_core_choice=5,
+    decomposer= decompose.MinorDecomposer(),
+    graphtransformer= mycascade)
 
 def make_samplers_chem():
     '''
@@ -242,28 +276,6 @@ def make_samplers_chem():
      all 3 samplers have a fit_transform(graphs),....
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
-
-    def get_no_abstr():
-        return output_corrected_graphlearn(n_steps=50)
-
-    def get_hand_abstr():
-        return output_corrected_graphlearn(
-        select_cip_max_tries=100,
-        size_constrained_core_choice=5,
-                # i changed the defaults for the strategy... it seems that
-                # 1. size constraint is not combinable with the other chip choice plans
-                # 2. size constraint core choice reduces the error rate compared to by_frequency, (probably)
-        decomposer= decompose.MinorDecomposer(),
-        graphtransformer= mole.GraphTransformerCircles())
-        
-
-    def get_casc_abstr():
-        return cascade.Cascade(depth=2,
-                              debug=True,
-                              multiprocess=True,
-                              max_group_size=6,
-                              min_group_size=2,
-                              num_classes=2)
         
     #samplers=[get_no_abstr(),get_hand_abstr(),get_casc_abstr()]
     
@@ -276,6 +288,9 @@ def make_samplers_chem():
 def runwrap(sampler,graphs):
     start=time.time()
     graphs=list(sampler.fit_transform(graphs))
+    if not graphs:
+        print "runwrap_no_results"
+        exit()
     timeused = time.time()- start
     
     return (graphs,timeused)
