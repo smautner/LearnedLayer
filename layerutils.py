@@ -5,7 +5,7 @@ i should rewrite this...
 from toolz import curry, compose, concat, pipe, first, second, take
 import time
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 from eden_chem.io.pubchem import download
 from eden.graph import Vectorizer
 import numpy as np
