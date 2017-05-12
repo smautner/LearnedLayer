@@ -9,5 +9,5 @@
 #source ~/.bashrc
 #source ~/stupidbash.sh   the -V sould take care of the env vars
 #source ~/setpypath.sh
-python rna_run.sh 
+python rna_run.py
 

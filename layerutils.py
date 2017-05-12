@@ -35,7 +35,7 @@ download_inactive = curry(download)(active=False,stepsize=50)
 
 from eden.util import configure_logging
 import logging
-configure_logging(logging.getLogger(),verbosity=3)
+configure_logging(logging.getLogger(),verbosity=1)
 
 
 def vectorize(thing):
@@ -277,22 +277,32 @@ def make_samplers_chem():
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
         
-    #samplers=[get_no_abstr(),get_hand_abstr(),get_casc_abstr()]
-    
-    samplers=[get_casc_abstr() for i in range(3)]
-    print 'samplers are fake atm'
+    samplers=[get_no_abstr(),get_hand_abstr(),get_casc_abstr()]
+    #samplers=[get_casc_abstr() for i in range(3)]
+    #print 'samplers are fake atm'
     return samplers
 
 ###################################################################
 
-def runwrap(sampler,graphs):
+def runwrap(sampler,graphs,attempt=0):
     start=time.time()
-    graphs=list(sampler.fit_transform(graphs))
+    
+    try:
+        graphs=list(sampler.fit_transform(graphs))
+    except ValueError:
+        # this happens when name_estimator does not have enough subgraphs extracted to train
+        # the nn:    clusterclassifier: fit: neigh.fit(data)
+        if attept < 3:
+            
+            return runwrap(sampler,graphs,attempt+1)
+        else:
+            
+            print 'runwrap failed, retrying! graphs#%d' % len(graphs)
+            raise Exception("attept 3... there were %d graphs" % len(graphs))
     if not graphs:
         print "runwrap_no_results"
         exit()
     timeused = time.time()- start
-    
     return (graphs,timeused)
 
 def run_experiments(samplers, data):
@@ -351,7 +361,6 @@ assay_id = '1834'  # apr90 500 mols
 
 assay_id = '651610'  # apr93 23k mols
 repeats = 3
-n_iter = 25
 train_sizes = [20,50,100,200,500,750,1000]
 
 '''
@@ -369,10 +378,9 @@ if __name__ == '__main__':
     if True:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
-        n_iter = 2
-        train_sizes= [20,30]
+        train_sizes= [25,50,100]
 
-    if True:
+    if False:
         samplers_chem = make_samplers_chem()
         data_chem  = make_data(assay_id,
                        repeats=repeats,
@@ -381,12 +389,15 @@ if __name__ == '__main__':
                        test_size_per_class=300,
                        pick_strategy='cluster') # cluster random  highscoring
         graphs_chem = run_experiments(samplers_chem,data_chem)
+
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
         make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='asd_time.png',dynamic_ylim=True)
 
 
-
+        # NOTES:
+        # 1. there are a few ascii draws in gl: cascade.py and abstractor.py
+        # 2. i inserted an exit in this py file
 
 
 
