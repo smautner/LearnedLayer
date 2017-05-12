@@ -375,12 +375,12 @@ if __name__ == '__main__':
 
 
 
-    if True:  # debug
+    if False:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
         train_sizes= [25,50,100]
 
-    if False:
+    if True:
         samplers_chem = make_samplers_chem()
         data_chem  = make_data(assay_id,
                        repeats=repeats,
@@ -391,8 +391,8 @@ if __name__ == '__main__':
         graphs_chem = run_experiments(samplers_chem,data_chem)
 
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
-        make_inbetween_plot(labels=train_sizes, means=means , stds=stds)
-        make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='asd_time.png',dynamic_ylim=True)
+        make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='chem.png')
+        make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
 
 
         # NOTES:
