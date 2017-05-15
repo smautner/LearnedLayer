@@ -64,13 +64,14 @@ def evaluate(rawrun):
 
 
 trainsizes=[10,20,50,100,200,300,400]
+trainsizes=[10,20]
 if True:    
     data= get_data2('RF00005',repeats=3, trainsizes=trainsizes)
     samplers = make_samplers_rna(n_jobs=4)
     rawrun = run_experiments(data,samplers)
     means,stds,means_time, stds_time = evaluate(rawrun)
 
-    make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='rna.png')
-    make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
+    make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='~/rna.png')
+    make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='~/rna_time.png',dynamic_ylim=True)
 
 
