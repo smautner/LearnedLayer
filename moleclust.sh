@@ -3,7 +3,7 @@
 
 #$ -cwd
 #$ -l h_vmem=10G
-#$ -pe smp 3
+#$ -pe smp 5
 #$ -V    
 #$ -R y
 #source ~/.bashrc

@@ -242,11 +242,11 @@ class output_corrected_graphlearn(graphlearn.graphlearn.Sampler):
             yield e
 
 
-def get_no_abstr():
-    return output_corrected_graphlearn(n_steps=50)
+def get_no_abstr(n_jobs=1):
+    return output_corrected_graphlearn(n_steps=50,n_jobs=n_jobs)
 
-def get_hand_abstr():
-    return output_corrected_graphlearn(
+def get_hand_abstr(n_jobs=1):
+    return output_corrected_graphlearn(n_jobs=n_jobs,
     select_cip_max_tries=100,
     size_constrained_core_choice=5,
             # i changed the defaults for the strategy... it seems that
@@ -256,7 +256,7 @@ def get_hand_abstr():
     graphtransformer= mole.GraphTransformerCircles())
     
 
-def get_casc_abstr():
+def get_casc_abstr(n_jobs=1):
     mycascade = cascade.Cascade(depth=2,
                           debug=False,
                           multiprocess=True,
@@ -264,20 +264,20 @@ def get_casc_abstr():
                           min_group_size=2,
                           num_classes=2)
 
-    return output_corrected_graphlearn(
+    return output_corrected_graphlearn(n_jobs=n_jobs,
     select_cip_max_tries=100,
     size_constrained_core_choice=5,
     decomposer= decompose.MinorDecomposer(),
     graphtransformer= mycascade)
 
-def make_samplers_chem():
+def make_samplers_chem(n_jobs=1):
     '''
     :return:
      all 3 samplers have a fit_transform(graphs),....
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
         
-    samplers=[get_no_abstr(),get_hand_abstr(),get_casc_abstr()]
+    samplers=[get_no_abstr(n_jobs=n_jobs),get_hand_abstr(n_jobs=n_jobs),get_casc_abstr(n_jobs=n_jobs)]
     #samplers=[get_casc_abstr() for i in range(3)]
     #print 'samplers are fake atm'
     return samplers
@@ -362,6 +362,7 @@ assay_id = '1834'  # apr90 500 mols
 assay_id = '651610'  # apr93 23k mols
 repeats = 3
 train_sizes = [20,50,100,200,500,750,1000]
+n_jobs=4
 
 '''
 THE PLAN IS SIMPLE
@@ -375,13 +376,13 @@ if __name__ == '__main__':
 
 
 
-    if False:  # debug
+    if True:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
         train_sizes= [25,50]
 
     if True:
-        samplers_chem = make_samplers_chem()
+        samplers_chem = make_samplers_chem(n_jobs=n_jobs)
         data_chem  = make_data(assay_id,
                        repeats=repeats,
                        trainclass=1,
