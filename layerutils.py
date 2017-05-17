@@ -375,10 +375,10 @@ if __name__ == '__main__':
 
 
 
-    if False:  # debug
+    if True:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
-        train_sizes= [25,50,100]
+        train_sizes= [25,50]
 
     if True:
         samplers_chem = make_samplers_chem()
@@ -393,7 +393,14 @@ if __name__ == '__main__':
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='chem.png')
         make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
+        
+        s="""
+        from layerutils import make_inbetween_plot
+        make_inbetween_plot(labels=%s,means=%s,stds=%s) 
+        """ % (str(train_sizes),str(means), str(stds))
 
+        with open("mmmmmm.py","w") as f:
+            f.write(s)
 
         # NOTES:
         # 1. there are a few ascii draws in gl: cascade.py and abstractor.py
