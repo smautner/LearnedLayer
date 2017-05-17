@@ -71,7 +71,7 @@ if True:
     rawrun = run_experiments(data,samplers)
     means,stds,means_time, stds_time = evaluate(rawrun)
 
-    make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='~/rna.png')
-    make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='~/rna_time.png',dynamic_ylim=True)
+    make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='rna.png')
+    make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
 
 

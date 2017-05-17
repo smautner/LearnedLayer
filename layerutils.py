@@ -375,7 +375,7 @@ if __name__ == '__main__':
 
 
 
-    if True:  # debug
+    if False:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
         train_sizes= [25,50]
