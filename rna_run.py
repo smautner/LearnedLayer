@@ -8,7 +8,7 @@ from rna_getsamplers import make_samplers_rna
 
 from eden.util import configure_logging
 import logging
-configure_logging(logging.getLogger(),verbosity=1)
+configure_logging(logging.getLogger(),verbosity=3)
 import time
 from layerutils import transpose
 from graphlearn.minor.rna.infernal import infernal_checker 
