@@ -2,8 +2,8 @@
 #!/scratch/bi01/mautner/miniconda2/bin/fish
 
 #$ -cwd
-#$ -l h_vmem=10G
-#$ -pe smp 5
+#$ -l h_vmem=7G
+#$ -pe smp 7
 #$ -V    
 #$ -R y
 #source ~/.bashrc

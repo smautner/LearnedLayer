@@ -68,7 +68,7 @@ trainsizes=[10,20,50,100,200,300,400]
 trainsizes=[10,20]
 if True:    
     data= get_data2('RF00005',repeats=3, trainsizes=trainsizes)
-    samplers = make_samplers_rna(n_jobs=4)
+    samplers = make_samplers_rna(n_jobs=3)
     rawrun = run_experiments(data,samplers)
     print "ran the experiments"
     means,stds,means_time, stds_time = evaluate(rawrun)
