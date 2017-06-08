@@ -65,7 +65,7 @@ def evaluate(rawrun):
 
 
 trainsizes=[10,20,50,100,200,300,400]
-if True:    
+if False:    
     data= get_data2('RF00005',repeats=3, trainsizes=trainsizes)
     samplers = make_samplers_rna(n_jobs=3)
     rawrun = run_experiments(data,samplers)
@@ -78,4 +78,23 @@ if True:
     make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='rna.png')
     make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
 
+
+#################################
+#  debug run :)
+###############################
+
+trainsizes=[400]
+if True:    
+    data= get_data2('RF00005',repeats=1, trainsizes=trainsizes)
+    samplers = make_samplers_rna(n_jobs=3)
+    samplers=[samplers[1]]
+    rawrun = run_experiments(data,samplers)
+    print "ran the experiments"
+    means,stds,means_time, stds_time = evaluate(rawrun)
+    
+    print "got data"
+    print means,stds,means_time,stds_time
+
+    make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='rna.png')
+    make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
 

@@ -373,9 +373,6 @@ THE PLAN IS SIMPLE
 
 '''
 if __name__ == '__main__':
-
-
-
     if False:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
@@ -383,12 +380,20 @@ if __name__ == '__main__':
 
     if True:
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
+        if True: # NEW TEST JUN 17!!
+            samplers_chem= [samplers_chem[1]]
+            repeats  = 1
+            train_sizes=[1000,1000]
+
         data_chem  = make_data(assay_id,
                        repeats=repeats,
                        trainclass=1,
                        train_sizes=train_sizes,
                        test_size_per_class=300,
                        pick_strategy='cluster') # cluster random  highscoring
+
+
+
         graphs_chem = run_experiments(samplers_chem,data_chem)
 
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
@@ -407,13 +412,6 @@ if __name__ == '__main__':
         # 1. there are a few ascii draws in gl: cascade.py and abstractor.py
         # 2. i inserted an exit in this py file
 
-
-
-    if False:
-        # do the same for RNA .. later
-        samplers_rna = make_samplers_rna()
-        #data_rna = make_data_rna()
-        #graphs_rna = [ list(s.fit_transform(problem['graphs_train']))  for s in samplers_rna for problem in data_rna ]
 
 
 
