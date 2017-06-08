@@ -381,7 +381,7 @@ if __name__ == '__main__':
     if True:
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
         if True: # NEW TEST JUN 17!!
-            samplers_chem= [samplers_chem[1]]
+            samplers_chem= [samplers_chem[2]]
             repeats  = 1
             train_sizes=[1000,1000]
 
@@ -397,9 +397,6 @@ if __name__ == '__main__':
         graphs_chem = run_experiments(samplers_chem,data_chem)
 
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
-        make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='chem.png')
-        make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
-        
         s="""
         from layerutils import make_inbetween_plot
         make_inbetween_plot(labels=%s,means=%s,stds=%s) 
@@ -408,6 +405,9 @@ if __name__ == '__main__':
         with open("mmmmmm.py","w") as f:
             f.write(s)
 
+        make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='chem.png')
+        make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
+        
         # NOTES:
         # 1. there are a few ascii draws in gl: cascade.py and abstractor.py
         # 2. i inserted an exit in this py file
