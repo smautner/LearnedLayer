@@ -309,9 +309,11 @@ def run_experiments(samplers, data):
     # this is bypassing the time annotation:
     #return  [[[  list(s.fit_transform(problem_dict['graphs_train']))
     return  [[[ runwrap(s,problem_dict['graphs_train']) 
-                      for problem_dict in repeat ]
+                     for problem_dict in repeat ]
                     for repeat in data]
                    for s in samplers]
+
+
     
 def evaluate(graphs, task_data):
     means = []
@@ -373,7 +375,7 @@ THE PLAN IS SIMPLE
 
 '''
 if __name__ == '__main__':
-    if True:  # debug
+    if False:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
         train_sizes= [25,50]
@@ -392,8 +394,10 @@ if __name__ == '__main__':
                        test_size_per_class=300,
                        pick_strategy='cluster') # cluster random  highscoring
 
-
-
+        import dill 
+        dill.dump(samplers_chem, open("samplers", "w"))
+        dill.dump(data_chem, open("data", "w"))
+        exit()
         graphs_chem = run_experiments(samplers_chem,data_chem)
 
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
