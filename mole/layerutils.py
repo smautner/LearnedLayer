@@ -373,14 +373,14 @@ THE PLAN IS SIMPLE
 
 '''
 if __name__ == '__main__':
-    if False:  # debug
+    if True:  # debug
         assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
         repeats = 2
         train_sizes= [25,50]
 
     if True:
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
-        if True: # NEW TEST JUN 17!!
+        if False: # NEW TEST JUN 17!!
             samplers_chem= [samplers_chem[1]]
             repeats  = 1
             train_sizes=[1000,1000]
@@ -397,13 +397,13 @@ if __name__ == '__main__':
         graphs_chem = run_experiments(samplers_chem,data_chem)
 
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
-        s="""
-        from layerutils import make_inbetween_plot
-        make_inbetween_plot(labels=%s,means=%s,stds=%s) 
-        """ % (str(train_sizes),str(means), str(stds))
+        #s="""
+        #from layerutils import make_inbetween_plot
+        #make_inbetween_plot(labels=%s,means=%s,stds=%s) 
+        #""" % (str(train_sizes),str(means), str(stds))
 
-        with open("sampler1ok.py","w") as f:
-            f.write(s)
+        #with open("sampler1ok.py","w") as f:
+        #    f.write(s)
 
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='chem.png')
         make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
