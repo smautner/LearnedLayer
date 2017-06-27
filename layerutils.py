@@ -381,7 +381,7 @@ if __name__ == '__main__':
     if True:
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
         if True: # NEW TEST JUN 17!!
-            samplers_chem= [samplers_chem[2]]
+            samplers_chem= [samplers_chem[1]]
             repeats  = 1
             train_sizes=[1000,1000]
 
@@ -402,7 +402,7 @@ if __name__ == '__main__':
         make_inbetween_plot(labels=%s,means=%s,stds=%s) 
         """ % (str(train_sizes),str(means), str(stds))
 
-        with open("mmmmmm.py","w") as f:
+        with open("sampler1ok.py","w") as f:
             f.write(s)
 
         make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='chem.png')

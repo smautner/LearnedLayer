@@ -14,11 +14,12 @@ from layerutils import transpose
 from graphlearn.minor.rna.infernal import infernal_checker 
 
 def runner(sampler,problem):
+    print 'runner start,'
     starttime = time.time() 
     thing= list(sampler.fit_transform(problem))
     # if sampling stopps at step 0, e[0] does not exist, we filter these with len e > 0
     result = [ e[0] for e in thing if len(e)>0]
-    print "runner made a run"
+    print ".. done"
     return (result, time.time()-starttime)
 
 def run_experiments(data,samplers):
@@ -87,7 +88,7 @@ trainsizes=[400]
 if True:    
     data= get_data2('RF00005',repeats=1, trainsizes=trainsizes)
     samplers = make_samplers_rna(n_jobs=3)
-    samplers=[samplers[1]]
+    samplers=[samplers[2]]
     rawrun = run_experiments(data,samplers)
     print "ran the experiments"
     means,stds,means_time, stds_time = evaluate(rawrun)
