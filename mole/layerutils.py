@@ -42,6 +42,7 @@ def vectorize(thing):
     v = Vectorizer()
     if not thing:
         raise Exception( "need something to vectirize.. received %s" % str(thing))
+    thing=list(thing) # current eden does not eat generators anymore? weird
     return v.transform(thing)
 
 def transpose(things):
@@ -374,11 +375,13 @@ THE PLAN IS SIMPLE
 4. draw
 
 '''
+
+if True:  # debug
+    assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
+    repeats = 2
+    train_sizes= [40,50,60]
+
 if __name__ == '__main__':
-    if False:  # debug
-        assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
-        repeats = 2
-        train_sizes= [25,50]
 
     if True:
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
@@ -398,8 +401,11 @@ if __name__ == '__main__':
         dill.dump(samplers_chem, open("samplers", "w"))
         dill.dump(data_chem, open("data", "w"))
         exit()
-        graphs_chem = run_experiments(samplers_chem,data_chem)
 
+
+
+
+        graphs_chem = run_experiments(samplers_chem,data_chem)
         means,stds,means_time, stds_time = evaluate(graphs_chem,data_chem)
         #s="""
         #from layerutils import make_inbetween_plot
