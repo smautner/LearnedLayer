@@ -58,14 +58,20 @@ if __name__ == '__main__':
 collecting results... 
 '''
 
+
+def load(se,i,j):
+    print "out_%d_%d_%d" % (se,i,j)
+    return dill.load( open("out_%d_%d_%d" % (se,i,j),"rb") )
+
 def collect_res(d,s):
-    res= [[[ dill.load("out_%d_%d_%d" % (se,i,j)) for j in range(len(e)) ]
+    res= [[[ load(se,i,j) for j in range(len(e)) ]
         for i,e in enumerate(d)]
             for se in range(len(s))]
     return res
 
 
 def make_graphs():
+    import layerutils as lu
     d,s = get_data()
     graphs_chem = collect_res(d,s)
     means,stds,means_time, stds_time = lu.evaluate(graphs_chem,d)
