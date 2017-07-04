@@ -6,9 +6,6 @@ import pprint
 from rna_getdata import get_data2
 from rna_getsamplers import make_samplers_rna
 
-from eden.util import configure_logging
-import logging
-configure_logging(logging.getLogger(),verbosity=1)
 import time
 from layerutils import transpose
 from graphlearn.minor.rna.infernal import infernal_checker 
@@ -22,6 +19,14 @@ def runner(sampler,problem):
     print ".. done"
     return (result, time.time()-starttime)
 
+
+
+
+
+
+
+
+
 def run_experiments(data,samplers):
     
     #0  is default
@@ -33,6 +38,8 @@ def run_experiments(data,samplers):
         for problem in repeat]
             for repeat in  data] 
                 for sampler in samplers]
+
+
 
 
 def evaluate(rawrun):
@@ -85,17 +92,14 @@ if False:
 ###############################
 
 trainsizes=[400]
-if True:    
+if False:
     data= get_data2('RF00005',repeats=1, trainsizes=trainsizes)
     samplers = make_samplers_rna(n_jobs=3)
     samplers=[samplers[2]]
     rawrun = run_experiments(data,samplers)
     print "ran the experiments"
     means,stds,means_time, stds_time = evaluate(rawrun)
-    
-    print "got data"
     print means,stds,means_time,stds_time
-
     make_inbetween_plot(labels=trainsizes, means=means , stds=stds, fname='rna.png')
     make_inbetween_plot(labels=trainsizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
 

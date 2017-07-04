@@ -376,10 +376,11 @@ THE PLAN IS SIMPLE
 
 '''
 
-if False:  # debug
+if True:  # debug
     assay_id = '1834' # 1834 is bad because there are too few compounds :D  65* is too large for testing
     repeats = 2
     train_sizes= [20,50]
+    n_jobs=1
 
 if __name__ == '__main__':
 

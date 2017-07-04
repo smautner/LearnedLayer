@@ -12,6 +12,12 @@
 #$ -m s 
 #$ -o o1/o.$SGE_TASK_ID
 #$ -e e1/e.$SGE_TASK_ID
+
+
+# 1. run layerutils to generate provlems
+# 2. run runner.py count to get the number of problems 
+# 3. run runner.py #problemID 
+
 #source ~/.bashrc
 #source ~/stupidbash.sh   the -V sould take care of the env vars
 #source ~/setpypath.sh
