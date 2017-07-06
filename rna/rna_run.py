@@ -60,7 +60,7 @@ def evaluate(rawrun):
            seq,tim = transpose(runsofsamelengh)
            #print seq,tim
            seq = [result[1] for run in seq for result in run]
-           seq = infernal_checker(seq,cmfile='tools/rf00005.cm', cmsearchbinarypath='tools/cmsearch')
+           seq = infernal_checker(seq,cmfile='../tools/rf00005.cm', cmsearchbinarypath='../tools/cmsearch')
            temp_m.append(np.mean(seq))
            temp_s.append(np.std(seq))
            temp_m_time.append(np.mean(tim))

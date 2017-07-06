@@ -7,7 +7,7 @@
 #$ -V    
 #$ -R y
 #$ -M mautner@cs.uni-freiburg.de
-#$ -t 13-18
+#$ -t 1-52
 #$ -m a 
 #$ -m s 
 #$ -o outt

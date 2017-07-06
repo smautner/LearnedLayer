@@ -14,11 +14,11 @@ the plan:
 '''
 
 '''write tasks'''
-def write_task():
+def write_task(trainsizes):
     from rna_getdata import get_data2
     from rna_getsamplers import make_samplers_rna
 
-    data= get_data2("RF00005", repeats=2, trainsizes=[20,40,60])
+    data= get_data2("RF00005", repeats=3, trainsizes=trainsizes)
     samplers = make_samplers_rna(n_jobs=2)
     dill.dump(data,open('data','wb'))
     dill.dump(samplers,open('samplers','wb'))
@@ -56,24 +56,27 @@ def load(se,i,j):
     return dill.load( open("out_%d_%d_%d" % (se,i,j),"rb") )
 
 def collect_res(d,s):
+    
     res= [[[ load(se,i,j) for j in range(len(e)) ]
         for i,e in enumerate(d)]
             for se in range(len(s))]
     return res
 
-def make_graphs():
-    import layerutils as lu
+def make_graphs(train_sizes):
+    import rna_run as rr
     d,s = get_data()
-    graphs_chem = collect_res(d,s)
-    means,stds,means_time, stds_time = lu.evaluate(graphs_chem,d)
+    results = collect_res(d,s)
+
+    means,stds,means_time, stds_time = rr.evaluate(results)
     # be careful with the train sizes.. check if they are right.. the obtaining is hacky
-    lu.make_inbetween_plot(labels=lu.train_sizes, means=means , stds=stds,fname='chem.png')
-    lu.make_inbetween_plot(labels=lu.train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
+    rr.make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='rna.png')
+    rr.make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
 
 def filename(t):
     return "out_%d_%d_%d" % tuple(t)
 
 def find_missins():
+
     d,s=get_data()
     t= task_count(d,s)
     import os
@@ -84,6 +87,7 @@ def find_missins():
 
 
 if __name__ == '__main__':
+    trainsizes=[20,50,100,200,300,400]
     import sys
     if len(sys.argv) < 2:    # NO ARGS => count the tasks
         print "at least write help :)"
@@ -96,18 +100,17 @@ if __name__ == '__main__':
         -- make .. make tasks
         """    
         exit()
-
     
     if  sys.argv[1] == 'miss':
         find_missins()
         exit()
 
     if  sys.argv[1] == 'draw':
-        make_graphs()
+        make_graphs(trainsizes)
         exit()
 
     if  sys.argv[1] == 'make':
-        write_task()
+        write_task(trainsizes)
         exit()
 
     d,s=get_data()
