@@ -79,15 +79,11 @@ def find_missins():
     import os
     for i, tri in enumerate(t):
         if os.path.isfile( filename(tri) ) == False:
-            print "%d is missing" % i+1
+            print "%d is missing" % (i+1)
 
 
 
 if __name__ == '__main__':
-
-
-
-
     import sys
     if len(sys.argv) < 2:    # NO ARGS => count the tasks
         print "at least write help :)"
