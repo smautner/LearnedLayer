@@ -7,11 +7,11 @@
 #$ -V    
 #$ -R y
 #$ -M mautner@cs.uni-freiburg.de
-#$ -t 1-63
+#$ -t 13-18
 #$ -m a 
 #$ -m s 
-#$ -o o1/o.$SGE_TASK_ID
-#$ -e e1/e.$SGE_TASK_ID
+#$ -o outt
+#$ -e erra
 
 
 # 1. run runner.py make  to generate provlems
