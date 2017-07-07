@@ -327,7 +327,7 @@ def runwrap2(sampler,graphs,graphs_neg,attempt=0):
         sampler.fit_grammar(decomposers_p)
 
         sampler.estimator= glesti.TwoClassEstimator()
-        sampler.fit_estimator(decomposers_p,decomposers_n)
+        sampler.fit_estimator(decomposers_p,negative_decomposers=decomposers_n)
 
         graphs=list(sampler.fit_transform(graphs))
 
