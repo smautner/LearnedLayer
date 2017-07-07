@@ -7,11 +7,11 @@
 #$ -V    
 #$ -R y
 #$ -M mautner@cs.uni-freiburg.de
-#$ -t 1-63
+#$ -t 1-12
 #$ -m a 
 #$ -m s 
-#$ -o o1/o.$SGE_TASK_ID
-#$ -e e1/e.$SGE_TASK_ID
+#$ -o o1/out_stdout
+#$ -e e1/out_stderr
 
 
 # 1. run layerutils to generate provlems
