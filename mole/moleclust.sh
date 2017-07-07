@@ -10,8 +10,8 @@
 #$ -t 1-12
 #$ -m a 
 #$ -m s 
-#$ -o o1/out_stdout
-#$ -e e1/out_stderr
+#$ -o out_stdout
+#$ -e out_stderr
 
 
 # 1. run layerutils to generate provlems
