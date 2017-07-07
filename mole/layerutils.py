@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 download_active = curry(download)(active=True,stepsize=50) # default stepsize = 50 (way to few)
 download_inactive = curry(download)(active=False,stepsize=50)
 
-
+from graphlearn import estimate as glesti
 from eden.util import configure_logging
 import logging
 configure_logging(logging.getLogger(),verbosity=1)
@@ -127,9 +127,11 @@ def make_data(assay_id,repeats=3,
         neg_vec_count = train_size
         # get train items
         possible_train_ids = np.where(y == trainclass)[0]
+        possible_negative_train_ids = np.where(y != trainclass)[0]
 
         if pick_strategy=='random':
             train_ids = np.random.permutation(possible_train_ids)[:train_size]
+            train_ids_neg = np.random.permutation(possible_negative_train_ids)[:train_size]
         else:
             # RATE ALL THE GRAPHS, TAKE THE BEST #TRAINSIZE
             #if pick_strategy == highest_scoring
@@ -155,10 +157,11 @@ def make_data(assay_id,repeats=3,
 
 
         train_graphs = list(selection_iterator(graphs, train_ids.tolist()))
+        train_graphs_neg = list(selection_iterator(graphs, train_ids_neg.tolist()))
 
         # MAKE THE DATA
         possible_test_ids_1 = np.array(list( set(possible_train_ids) - set(train_ids)))
-        possible_test_ids_0 = np.where(y == not_train_class)[0]
+        possible_test_ids_0 = np.array(list( set(possible_negative_train_ids) - set(train_ids_neg)))
 
         test_ids_1 = np.random.permutation(possible_test_ids_1)[:test_size_per_class]
         shuffled_negs = np.random.permutation(possible_test_ids_0)
@@ -174,7 +177,11 @@ def make_data(assay_id,repeats=3,
 
         #esti= SGDClassifier(loss='log')
         #esti.fit(X_test,Y_test)
-        return {'X_test':X_test,'y_test':Y_test,'oracle':esti,'graphs_train':train_graphs,'neg_vecs':neg_vecs}
+        # neg_vecs is bogus (ima yoparatta kedo)
+        return {'X_test':X_test,'y_test':Y_test,'oracle':esti,
+                'graphs_train':train_graphs,
+                'neg_vecs':neg_vecs,
+                "train_graphs_neg":train_graphs_neg}
 
     return [ [get_run(ts) for ts in train_sizes] for i in range(repeats)]
 
@@ -306,6 +313,42 @@ def runwrap(sampler,graphs,attempt=0):
     timeused = time.time()- start
     return (graphs,timeused)
 
+
+def runwrap2(sampler,graphs,graphs_neg,attempt=0):
+    start=time.time()
+
+    try:
+
+        decomposers_p = [sampler.decomposer.make_new_decomposer(data)
+                       for data in sampler.graph_transformer.fit_transform(graphs)]
+
+        decomposers_n = [sampler.decomposer.make_new_decomposer(data)
+                         for data in sampler.graph_transformer.fit_transform(graphs_neg)]
+
+        sampler.fit_grammar(decomposers_p)
+
+        sampler.estimator= glesti.TwoClassEstimator()
+        sampler.fit_estimator(decomposers_p,decomposers_n)
+
+        graphs=list(sampler.fit_transform(graphs))
+
+
+    except ValueError:
+        # this happens when name_estimator does not have enough subgraphs extracted to train
+        # the nn:    clusterclassifier: fit: neigh.fit(data)
+        if attempt < 3:
+            return runwrap2(sampler,graphs,attempt+1)
+        else:
+            print 'runwrap failed, retrying! graphs#%d' % len(graphs)
+            raise Exception("attept 3... there were %d graphs" % len(graphs))
+    if not graphs:
+        print "runwrap_no_results"
+        exit()
+    timeused = time.time()- start
+    return (graphs,timeused)
+
+
+
 def run_experiments(samplers, data):
     # this is bypassing the time annotation:
     #return  [[[  list(s.fit_transform(problem_dict['graphs_train']))
@@ -386,10 +429,6 @@ if __name__ == '__main__':
 
     if True:
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
-        if False: # NEW TEST JUN 17!!
-            samplers_chem= [samplers_chem[1]]
-            repeats  = 1
-            train_sizes=[1000,1000]
 
         data_chem  = make_data(assay_id,
                        repeats=repeats,

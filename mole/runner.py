@@ -102,7 +102,8 @@ if __name__ == '__main__':
     taskid = int(sys.argv[1])-1 # sge can not have id 0 :/
     samplerid, d1,d2 = t[taskid]
     import layerutils as lu
-    res = lu.runwrap(s[samplerid],d[d1][d2]["graphs_train"])
+    res = lu.runwrap2(s[samplerid],d[d1][d2]["graphs_train"],
+                      d[d1][d2]['train_graphs_neg'])
     dill.dump(res,open("out_%d_%d_%d" % (samplerid,d1,d2),'wb'))
 
 
