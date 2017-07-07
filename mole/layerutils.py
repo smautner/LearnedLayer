@@ -128,7 +128,6 @@ def make_data(assay_id,repeats=3,
         # get train items
         possible_train_ids = np.where(y == trainclass)[0]
         possible_negative_train_ids = np.where(y != trainclass)[0]
-
         if pick_strategy=='random':
             train_ids = np.random.permutation(possible_train_ids)[:train_size]
             train_ids_neg = np.random.permutation(possible_negative_train_ids)[:train_size]
@@ -137,7 +136,7 @@ def make_data(assay_id,repeats=3,
             #if pick_strategy == highest_scoring
             possible_train_graphs_values = esti.decision_function(X[possible_train_ids])
             train_ids = np.argpartition(possible_train_graphs_values,-train_size)[-train_size:]
-
+            train_ids_neg = np.random.permutation(possible_negative_train_ids)[:train_size]
             if pick_strategy == 'cluster':
                 # CLUSTER THE BEST ONES, USE THE BIGGEST CLUSTER
                 n_clusters=3
