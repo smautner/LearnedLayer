@@ -59,11 +59,14 @@ def find_missins():
     d,s=get_data()
     t= task_count(d,s)
     import os
+    missing=[]
     for i, tri in enumerate(t):
         if os.path.isfile( filename(tri) ) == False:
-            print "%d is missing" % i+1
-
-
+            missing.append(i)
+    
+    print "%d items are missing" % len(missing)
+    for e in missing:
+        print "qsub -t %d;" % e
 
 if __name__ == '__main__':
 
