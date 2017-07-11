@@ -12,7 +12,7 @@ import numpy as np
 import random
 from time import time
 import datetime
-from graphlearn.graphlearn import Sampler as GraphLearnSampler
+from graphlearn01.graphlearn import Sampler as GraphLearnSampler
 from eden.util import fit,estimate
 from eden.path import Vectorizer
 import random
@@ -75,11 +75,11 @@ def get_graphs_permuted(fname='RF00005.fa',size=99999):
 # In[ ]:
 
 import random
-import graphlearn.abstract_graphs.RNA as rna
-from  graphlearn.feasibility import FeasibilityChecker as Checker
-from graphlearn.estimator import Wrapper as estimatorwrapper
-import graphlearn.utils.draw as draw
-from graphlearn.graphlearn import Sampler as GLS
+import graphlearn01.abstract_graphs.RNA as rna
+from  graphlearn01.feasibility import FeasibilityChecker as Checker
+from graphlearn01.estimator import Wrapper as estimatorwrapper
+import graphlearn01.utils.draw as draw
+from graphlearn01.graphlearn import Sampler as GLS
 import itertools
 
 

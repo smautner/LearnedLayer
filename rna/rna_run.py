@@ -8,7 +8,7 @@ from rna_getsamplers import make_samplers_rna
 
 import time
 from layerutils import transpose
-from graphlearn.minor.rna.infernal import infernal_checker 
+from graphlearn01.minor.rna.infernal import infernal_checker
 
 def runner(sampler,problem):
     print 'runner start,'

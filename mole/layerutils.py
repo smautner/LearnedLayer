@@ -13,7 +13,7 @@ from scipy.sparse import vstack
 from eden_chem.io.rdkitutils import sdf_to_nx as babel_load  # !!!
 from eden_chem.display.rdkitutils import nx_to_image
 from eden.util import selection_iterator
-from graphlearn.trial_samplers import GAT
+from graphlearn01.trial_samplers import GAT
 # DISPLAY IMPORTS
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import roc_auc_score
@@ -23,16 +23,16 @@ from sklearn.metrics import classification_report
 #from eden_display import plot_aucs
 from sklearn.linear_model import SGDClassifier
 import eden_tricks
-import graphlearn
-import graphlearn.learnedlayer.cascade as cascade
-import graphlearn.minor.molecule.transform_cycle as mole
-import graphlearn.minor.decompose as decompose
+import graphlearn01
+import graphlearn01.learnedlayer.cascade as cascade
+import graphlearn01.minor.molecule.transform_cycle as mole
+import graphlearn01.minor.decompose as decompose
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 download_active = curry(download)(active=True,stepsize=50) # default stepsize = 50 (way to few)
 download_inactive = curry(download)(active=False,stepsize=50)
 
-from graphlearn import estimate as glesti
+from graphlearn01 import estimate as glesti
 from eden.util import configure_logging
 import logging
 configure_logging(logging.getLogger(),verbosity=1)
@@ -243,7 +243,7 @@ def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .
 ###################################################################
 
 
-class output_corrected_graphlearn(graphlearn.graphlearn.Sampler):
+class output_corrected_graphlearn(graphlearn01.graphlearn.Sampler):
     def _return_formatter(self, graphlist, mon):
         for e in graphlist:
             yield e

@@ -87,7 +87,7 @@ warnings.filterwarnings('ignore')
 
 # In[2]:
 
-from graphlearn.utils import draw
+from graphlearn01.utils import draw
 from eden.graph import Vectorizer
 
 '''
@@ -118,11 +118,11 @@ draw.graphlearn(graph,size=10, abstract_color='red', contract=True,ignore_for_la
 
 # In[3]:
 
-from graphlearn.graphlearn import Sampler as graphlearn_sampler
-from graphlearn.learnedlayer import transform
+from graphlearn01.graphlearn import Sampler as graphlearn_sampler
+from graphlearn01.learnedlayer import transform
 
 graphs = get_graphs(size=200)
-import graphlearn.minor.decompose as decompose
+import graphlearn01.minor.decompose as decompose
 import eden
 sampler=graphlearn_sampler(
             decomposer=decompose.MinorDecomposer(),
@@ -185,7 +185,7 @@ graphs = sampler.transform(graphs)
 
 # In[ ]:
 
-from  graphlearn.utils import draw
+from  graphlearn01.utils import draw
     
 scores=[]
 ids=range(id_start,id_end)

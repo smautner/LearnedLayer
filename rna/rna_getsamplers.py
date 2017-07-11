@@ -1,9 +1,9 @@
-from graphlearn.minor.rna.rnadecomposer import RnaDecomposer
-import graphlearn.minor.rna.infernal as infernal
-from graphlearn.minor.rna import forgitransform as forgitransform
-from graphlearn.learnedlayer import cascade
-from graphlearn.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
-from graphlearn.minor.rna import get_sequence
+from graphlearn01.minor.rna.rnadecomposer import RnaDecomposer
+import graphlearn01.minor.rna.infernal as infernal
+from graphlearn01.minor.rna import forgitransform as forgitransform
+from graphlearn01.learnedlayer import cascade
+from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
+from graphlearn01.minor.rna import get_sequence
 
 
 # moved the class outside the make_samplers_rna function because dill died
