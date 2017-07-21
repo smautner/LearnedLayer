@@ -1,95 +1,65 @@
+
 import dill
-from eden.util import configure_logging
-import logging
-configure_logging(logging.getLogger(),verbosity=2)
-
-
+import rna_getdata as getdata
+import rna_run as runner
+import os
 '''
 the plan:
-0. write the tasks
 1. read the files
 2. determine number of calc items
 3. take cmd arg to choose a calc item
 4. calc and save
 '''
 
-'''write tasks'''
-def write_task(trainsizes):
-    from rna_getdata import get_data2
-    from rna_getsamplers import make_samplers_rna
-
-    data= get_data2("RF00005", repeats=3, trainsizes=trainsizes)
-    samplers = make_samplers_rna(n_jobs=2)
-    dill.dump(data,open('data','wb'))
-    dill.dump(samplers,open('samplers','wb'))
+#  read tasks
+def load_tasks():
+    return dill.load(open("tasks","rb"))
 
 
+# read results
+def filename(task):
+    return "out_%d_%d_%d" % (task.samplerid, task.size, task.repeat)
 
-'''read tasks'''
+def load_result(task):
+    print "reading", filename(task)
+    return dill.load( open( filename(task),"rb") )
 
-import dill
-def get_data():
-    data = dill.load(open("data","rb"))
-    sampler = dill.load(open("samplers","rb"))
-    return data,sampler
-
-
-
-def task_count(data,samplers):
-    res=[]
-    for i in range(len(samplers)):
-        for j,d in enumerate(data):
-            for k in range(len(d)):
-                res.append( (i,j,k) )
-    return res
-
-
+def collect_res():
+    a  = load_tasks()
+    return map(load_result,a)
 
 
 '''
-collecting results... 
+def make_graphs():
+    res= collect_res()
+    processed = clean_eval.eval(res, dill.load(open("esti",'rb')))
+    clean_eval.draw(processed, lambda x:x.score_mean , lambda x:x.score_var,'molescore.png')
+    clean_eval.draw(processed, lambda x:x.time_mean , lambda x:x.time_var,'moletime.png')
 '''
-
-
-def load(se,i,j):
-    print "out_%d_%d_%d" % (se,i,j)
-    return dill.load( open("out_%d_%d_%d" % (se,i,j),"rb") )
-
-def collect_res(d,s):
-    
-    res= [[[ load(se,i,j) for j in range(len(e)) ]
-        for i,e in enumerate(d)]
-            for se in range(len(s))]
-    return res
-
-def make_graphs(train_sizes):
-    import rna_run as rr
-    d,s = get_data()
-    results = collect_res(d,s)
-
-    means,stds,means_time, stds_time = rr.evaluate(results)
-    # be careful with the train sizes.. check if they are right.. the obtaining is hacky
-    rr.make_inbetween_plot(labels=train_sizes, means=means , stds=stds,fname='rna.png')
-    rr.make_inbetween_plot(labels=train_sizes, means=means_time, stds=stds_time,fname='rna_time.png',dynamic_ylim=True)
-
-def filename(t):
-    return "out_%d_%d_%d" % tuple(t)
 
 def find_missins():
+    a = load_tasks()
+    missing=[]
+    for i, task in enumerate(a):
+        if os.path.isfile( filename(task) ) == False:
+            missing.append(i+1)
+    print "%d items are missing" % len(missing)
+    for e in missing:
+        print "qsub -t %d;" % e
 
-    d,s=get_data()
-    t= task_count(d,s)
-    import os
-    for i, tri in enumerate(t):
-        if os.path.isfile( filename(tri) ) == False:
-            print "%d is missing" % (i+1)
 
 
+repeats=3
+train_sizes=[20,50,100,200,400]
+rfamid = 'RF00005'
+
+if True: # DEBUG :)
+    train_sizes=[25,50]
+    repeats =2
 
 if __name__ == '__main__':
-    trainsizes=[20,50,100,200,300,400]
     import sys
-    if len(sys.argv) < 2:    # NO ARGS => count the tasks
+    if len(sys.argv) < 2:    # NO ARGS
         print "at least write help :)"
         exit()
     if  sys.argv[1] == 'help':
@@ -97,37 +67,40 @@ if __name__ == '__main__':
         -- count .. give number of tasks
         -- miss
         -- draw
-        -- make .. make tasks
-        """    
+        -- maketasks
+        """
         exit()
-    
+
+
+    if sys.argv[1] == 'maketasks':
+        a = list(getdata.get_data(rfamid,trainsizes=train_sizes,repeats=repeats))
+        dill.dump(a,open("tasks","wb"))
+        print 'number of tasks:',len(a)
+        exit()
+
+    if  sys.argv[1] == 'count':
+        tasks = load_tasks()
+        print len(tasks)
+        exit()
+
     if  sys.argv[1] == 'miss':
         find_missins()
         exit()
 
     if  sys.argv[1] == 'draw':
-        make_graphs(trainsizes)
-        exit()
-
-    if  sys.argv[1] == 'make':
-        write_task(trainsizes)
-        exit()
-
-    d,s=get_data()
-    #print d
-    t= task_count(d,s)
-
-
-    if  sys.argv[1] == 'count':
-        print "there are %d tasks" % len(t)
-        print t
+        #make_graphs()
         exit()
 
 
+    a = load_tasks()
     taskid = int(sys.argv[1])-1 # sge can not have id 0 :/
-    samplerid, d1,d2 = t[taskid]
-    from rna_run import runner
-    res = runner(s[samplerid],d[d1][d2])
-    dill.dump(res,open("out_%d_%d_%d" % (samplerid,d1,d2),'wb'))
+
+    task= a[taskid]
+    res = runner.run(task)
+    #sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
+
+    print res.sequences
+    #dill.dump(res,open(filename(task),'wb'))
+
 
 
