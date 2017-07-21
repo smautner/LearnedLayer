@@ -14,7 +14,7 @@ def getcol(procress):
     return coldict[procress.samplerid]
 
 
-def sequences_to_scores(sequences, rfamid):
+def sequences_to_scores(seq, rfamid):
     # need an np array of stuff
     seq = infernal_checker(seq, cmfile='../tools/%s.cm' % rfamid , cmsearchbinarypath='../tools/cmsearch')
     return np.array(seq)
