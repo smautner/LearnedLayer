@@ -2,12 +2,12 @@
 #!/scratch/bi01/mautner/miniconda2/bin/fish
 
 #$ -cwd
-#$ -l h_vmem=19G
-#$ -pe smp 5
+#$ -l h_vmem=31G
+#$ -pe smp 2
 #$ -V    
 #$ -R y
 #$ -M mautner@cs.uni-freiburg.de
-#$ -t 53-54
+#$ -t 1-12
 #$ -m a 
 #$ -m s 
 #$ -o outt
