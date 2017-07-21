@@ -24,7 +24,7 @@ def eval(res,rfam):
     processed=[]
     for byrepeats in toolz.groupby(lambda x:x.samplerid+x.size, res).values():
         time=np.array([ x.time for x in byrepeats ])
-        graphs = [g for x in byrepeats for g in x.graphs ]
+        graphs = [g[1] for x in byrepeats for g in x.sequences ]
         scores = sequences_to_scores(graphs, rfam)
         processed.append(  processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var())  )
     return processed

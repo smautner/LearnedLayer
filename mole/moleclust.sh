@@ -5,12 +5,12 @@
 
 
 #$ -cwd
-#$ -l h_vmem=31G 
+#$ -l h_vmem=47G 
 #$ -pe smp 2
 #$ -V    
 #$ -R y
 #$ -M mautner@cs.uni-freiburg.de
-#$ -t 1-72
+##$ -t 1-72
 #$ -m a 
 #$ -m s 
 #$ -o out_stdout

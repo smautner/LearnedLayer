@@ -3,6 +3,7 @@ import dill
 import rna_getdata as getdata
 import rna_run as runner
 import os
+import rna_eval
 '''
 the plan:
 1. read the files
@@ -29,13 +30,12 @@ def collect_res():
     return map(load_result,a)
 
 
-'''
-def make_graphs():
+def make_graphs(rfamid):
     res= collect_res()
-    processed = clean_eval.eval(res, dill.load(open("esti",'rb')))
-    clean_eval.draw(processed, lambda x:x.score_mean , lambda x:x.score_var,'molescore.png')
-    clean_eval.draw(processed, lambda x:x.time_mean , lambda x:x.time_var,'moletime.png')
-'''
+    processed = rna_eval.eval(res, rfamid)
+    rna_eval.draw(processed, lambda x:x.score_mean , lambda x:x.score_var,'rna_score.png')
+    rna_eval.draw(processed, lambda x:x.time_mean , lambda x:x.time_var,'rna_time.png')
+
 
 def find_missins():
     a = load_tasks()
@@ -53,7 +53,7 @@ repeats=3
 train_sizes=[20,50,100,200,400]
 rfamid = 'RF00005'
 
-if True: # DEBUG :)
+if False: # DEBUG :)
     train_sizes=[25,50]
     repeats =2
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         exit()
 
     if  sys.argv[1] == 'draw':
-        #make_graphs()
+        make_graphs(rfamid)
         exit()
 
 
