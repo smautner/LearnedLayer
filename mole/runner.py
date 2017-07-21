@@ -2,7 +2,7 @@ import dill
 import clean_make_tasks as make
 import clean_sample
 import clean_eval
-
+import os
 '''
 the plan:
 1. read the files
@@ -11,55 +11,38 @@ the plan:
 4. calc and save
 '''
 
-
 #  read tasks
 def load_tasks():
-    size_rep_list, esti,make_samplers_chem = dill.load(open("tasks","rb"))
-    return size_rep_list,esti,make_samplers_chem
-
-
-def count_tasks(size_rep,samplers):
-    res=[]
-    for i in range(len(samplers)): # samplers
-        for j in range(len(size_rep)): # sizes
-            for k in range(len(size_rep[0])): # repeats are the same for all sizes
-                res.append( (i,j,k) )
-    return res
+    return dill.load(open("tasks","rb"))
 
 
 # read results
-def filename(t):
-    return "out_%d_%d_%d" % tuple(t)
+def filename(task):
+    return "out_%d_%d_%d" % (task.samplerid, task.size, task.repeat)
 
-def load_result(se,i,j):
-    print filename((se,i,j))
-    return dill.load( open( filename((se,i,j)),"rb") )
-
-
-def collect_res(size_rep,samplers):
-    res= [[[ load_result(se,i,j) for j in range(len(size_rep[0]))  ]
-        for i in range(len(size_rep))]
-            for se in range(len(samplers))]
-    return res
+def load_result(task):
+    print "reading", filename(task)
+    return dill.load( open( filename(task),"rb") )
 
 
+def collect_res():
+    a  = load_tasks()
+    return map(load_result,a)
 
 
-def make_graphs(train_sizes):
-    li,es,sa = load_tasks()
-    res= collect_res(li,sa)
-    clean_eval.eval(res,es, train_sizes)
-
+def make_graphs():
+    res= collect_res()
+    processed = clean_eval.eval(res, dill.load(open("esti",'rb')))
+    clean_eval.draw(processed, lambda x:x.score_mean , lambda x:x.score_var,'molescore.png')
+    clean_eval.draw(processed, lambda x:x.time_mean , lambda x:x.time_var,'moletime.png')
 
 
 def find_missins():
-    l,e,sa=load_tasks()
-    t= count_tasks(l,sa)
-    import os
+    a = load_tasks()
     missing=[]
-    for i, tri in enumerate(t):
-        if os.path.isfile( filename(tri) ) == False:
-            missing.append(i)
+    for i, task in enumerate(a):
+        if os.path.isfile( filename(task) ) == False:
+            missing.append(i+1)
     print "%d items are missing" % len(missing)
     for e in missing:
         print "qsub -t %d;" % e
@@ -91,15 +74,15 @@ if __name__ == '__main__':
 
 
     if sys.argv[1] == 'maketasks':
-        a = make.get_tasks(assid,train_sizes=train_sizes,repeats=repeats)
-        a[2]= a[2][:2] # Only 2 here :)
-        dill.dump(a,open("tasks","wb"))
-        print 'number of tasks:',len(count_tasks(a[0],a[2]))
+        a = list(make.make_data(assid,train_sizes=train_sizes,repeats=repeats))
+        dill.dump(a[:-1],open("tasks","wb"))
+        dill.dump(a[-1],open("esti","wb"))
+        print 'number of tasks:',len(a)-1
         exit()
 
     if  sys.argv[1] == 'count':
-        l,e,sa= load_tasks()
-        print len(count_tasks(l,sa))
+        tasks = load_tasks()
+        print len(tasks)
         exit()
     
     if  sys.argv[1] == 'miss':
@@ -107,24 +90,18 @@ if __name__ == '__main__':
         exit()
 
     if  sys.argv[1] == 'draw':
-        make_graphs(train_sizes)
+        make_graphs()
         exit()
 
 
-    l,e,sa = load_tasks()
+    a = load_tasks()
     taskid = int(sys.argv[1])-1 # sge can not have id 0 :/
-    t= count_tasks(l,sa)[taskid]
 
-    samplerid, sizeid, repeat = t
-    sampler= sa[samplerid]
-    data   = l[sizeid][repeat]
-
-    res = clean_sample.runwrap(sa[samplerid], data)
-    dill.dump(res,open(filename(t),'wb'))
+    task= a[taskid]
+    res = clean_sample.runwrap(task)
+    #sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
+    dill.dump(res,open(filename(task),'wb'))
 
 
-######
-### put arg options to find missind and make_graphs
-#####
 
 

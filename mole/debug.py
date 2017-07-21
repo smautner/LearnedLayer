@@ -4,8 +4,6 @@ we are here to fix them
 '''
 
 import dill
-import layerutils as lu
-import mole.clean_make_tasks
 import mole.clean_sample
 
 X,y,graphs,stats = mole.clean_make_tasks.get_data("1834")
