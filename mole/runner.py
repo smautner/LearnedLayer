@@ -47,6 +47,10 @@ def find_missins():
     for e in missing:
         print "qsub -t %d;" % e
 
+def get_task(taskid):
+    """i hope this destroys the object after use..."""
+    a = load_tasks()
+    return a[taskid]
 
 
 repeats=3
@@ -94,9 +98,8 @@ if __name__ == '__main__':
         exit()
 
 
-    a = load_tasks()
     taskid = int(sys.argv[1])-1 # sge can not have id 0 :/
-
+    task=get_task(taskid)
     task= a[taskid]
     res = clean_sample.runwrap(task)
     #sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
