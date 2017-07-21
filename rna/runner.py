@@ -97,10 +97,9 @@ if __name__ == '__main__':
 
     task= a[taskid]
     res = runner.run(task)
-    #sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
+    #sampled = namedtuple("sampled",'samplerid,size,repeat,time,sequences')
 
-    print res.sequences
-    #dill.dump(res,open(filename(task),'wb'))
+    dill.dump(res,open(filename(task),'wb'))
 
 
 
