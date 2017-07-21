@@ -57,7 +57,7 @@ repeats=3
 train_sizes=[20,50,100,200,400,600,800,1000]
 assid = '651610'
 
-if True: # DEBUG :)
+if False: # DEBUG :)
     assid = '1834'
     train_sizes=[20,100]
     repeats =2
