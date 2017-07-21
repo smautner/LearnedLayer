@@ -1,7 +1,7 @@
-
-
-
-
+import dill
+import clean_make_tasks as make
+import clean_sample
+import clean_eval
 
 '''
 the plan:
@@ -11,70 +11,71 @@ the plan:
 4. calc and save
 '''
 
-import dill
-def get_data():
-    data = dill.load(open("data","rb"))
-    sampler = dill.load(open("samplers","rb"))
-    return data,sampler
 
-def task_count(data,samplers):
+#  read tasks
+def load_tasks():
+    size_rep_list, esti,make_samplers_chem = dill.load(open("tasks","rb"))
+    return size_rep_list,esti,make_samplers_chem
+
+
+def count_tasks(size_rep,samplers):
     res=[]
-    for i in range(len(samplers)):
-        for j,d in enumerate(data):
-            for k in range(len(d)):
+    for i in range(len(samplers)): # samplers
+        for j in range(len(size_rep)): # sizes
+            for k in range(len(size_rep[0])): # repeats are the same for all sizes
                 res.append( (i,j,k) )
     return res
 
 
-
-
-'''
-collecting results... 
-'''
-
-
-def load(se,i,j):
-    print "out_%d_%d_%d" % (se,i,j)
-    return dill.load( open("out_%d_%d_%d" % (se,i,j),"rb") )
-
-def collect_res(d,s):
-    res= [[[ load(se,i,j) for j in range(len(e)) ]
-        for i,e in enumerate(d)]
-            for se in range(len(s))]
-    return res
-
-def make_graphs():
-    import layerutils as lu
-    d,s = get_data()
-    graphs_chem = collect_res(d,s)
-    means,stds,means_time, stds_time = lu.evaluate(graphs_chem,d)
-    # be careful with the train sizes.. check if they are right.. the obtaining is hacky
-    lu.make_inbetween_plot(labels=lu.train_sizes, means=means , stds=stds,fname='chem.png')
-    lu.make_inbetween_plot(labels=lu.train_sizes, means=means_time, stds=stds_time,fname='chem_time.png',dynamic_ylim=True)
-
+# read results
 def filename(t):
     return "out_%d_%d_%d" % tuple(t)
 
+def load_result(se,i,j):
+    print filename((se,i,j))
+    return dill.load( open( filename((se,i,j)),"rb") )
+
+
+def collect_res(size_rep,samplers):
+    res= [[[ load_result(se,i,j) for j in range(len(size_rep[0]))  ]
+        for i in range(len(size_rep))]
+            for se in range(len(samplers))]
+    return res
+
+
+
+
+def make_graphs(train_sizes):
+    li,es,sa = load_tasks()
+    res= collect_res(li,sa)
+    clean_eval.eval(res,es, train_sizes)
+
+
+
 def find_missins():
-    d,s=get_data()
-    t= task_count(d,s)
+    l,e,sa=load_tasks()
+    t= count_tasks(l,sa)
     import os
     missing=[]
     for i, tri in enumerate(t):
         if os.path.isfile( filename(tri) ) == False:
             missing.append(i)
-    
     print "%d items are missing" % len(missing)
     for e in missing:
         print "qsub -t %d;" % e
 
+
+
+repeats=3
+train_sizes=[20,50,100,200,400,600,800,1000]
+assid = '651610'
+
+if True: # DEBUG :)
+    assid = '1834'
+    train_sizes=[20,100]
+    repeats =2
+
 if __name__ == '__main__':
-
-    d,s=get_data()
-    #print d
-    t= task_count(d,s)
-
-
     import sys
     if len(sys.argv) < 2:    # NO ARGS => count the tasks
         print "at least write help :)"
@@ -84,11 +85,21 @@ if __name__ == '__main__':
         -- count .. give number of tasks
         -- miss
         -- draw
+        -- maketasks
         """    
         exit()
+
+
+    if sys.argv[1] == 'maketasks':
+        a = make.get_tasks(assid,train_sizes=train_sizes,repeats=repeats)
+        a[2]= a[2][:2] # Only 2 here :)
+        dill.dump(a,open("tasks","wb"))
+        print 'number of tasks:',len(count_tasks(a[0],a[2]))
+        exit()
+
     if  sys.argv[1] == 'count':
-        print "there are %d tasks" % len(t)
-        print t
+        l,e,sa= load_tasks()
+        print len(count_tasks(l,sa))
         exit()
     
     if  sys.argv[1] == 'miss':
@@ -96,18 +107,20 @@ if __name__ == '__main__':
         exit()
 
     if  sys.argv[1] == 'draw':
-        make_graphs()
+        make_graphs(train_sizes)
         exit()
 
 
-
-
+    l,e,sa = load_tasks()
     taskid = int(sys.argv[1])-1 # sge can not have id 0 :/
-    samplerid, d1,d2 = t[taskid]
-    import layerutils as lu
-    res = lu.runwrap2(s[samplerid],d[d1][d2]["graphs_train"],
-                      d[d1][d2]['train_graphs_neg'])
-    dill.dump(res,open("out_%d_%d_%d" % (samplerid,d1,d2),'wb'))
+    t= count_tasks(l,sa)[taskid]
+
+    samplerid, sizeid, repeat = t
+    sampler= sa[samplerid]
+    data   = l[sizeid][repeat]
+
+    res = clean_sample.runwrap(sa[samplerid], data)
+    dill.dump(res,open(filename(t),'wb'))
 
 
 ######

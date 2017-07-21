@@ -2,48 +2,22 @@
 i just wrote this a few weeks back,,, but its horrible.. what was i thinking? 
 i should rewrite this... 
 '''
-from toolz import curry, compose, concat, pipe, first, second, take
-import time
 import matplotlib
+import time
+
+from mole.clean_make_tasks import vectorize, make_data, make_samplers_chem
+
 matplotlib.use('Agg')
-from eden_chem.io.pubchem import download
-from eden.graph import Vectorizer
-import numpy as np
-from scipy.sparse import vstack
-from eden_chem.io.rdkitutils import sdf_to_nx as babel_load  # !!!
-from eden_chem.display.rdkitutils import nx_to_image
-from eden.util import selection_iterator
-from graphlearn01.trial_samplers import GAT
 # DISPLAY IMPORTS
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import average_precision_score
-from sklearn.metrics import classification_report
 #from eden_display import plot_confusion_matrices
 #from eden_display import plot_aucs
-from sklearn.linear_model import SGDClassifier
-import eden_tricks
-import graphlearn01
-import graphlearn01.learnedlayer.cascade as cascade
-import graphlearn01.minor.molecule.transform_cycle as mole
-import graphlearn01.minor.decompose as decompose
-from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-download_active = curry(download)(active=True,stepsize=50) # default stepsize = 50 (way to few)
-download_inactive = curry(download)(active=False,stepsize=50)
 
-from graphlearn01 import estimate as glesti
 from eden.util import configure_logging
 import logging
 configure_logging(logging.getLogger(),verbosity=1)
 
 
-def vectorize(thing):
-    v = Vectorizer()
-    if not thing:
-        raise Exception( "need something to vectirize.. received %s" % str(thing))
-    thing=list(thing) # current eden does not eat generators anymore? weird
-    return v.transform(thing)
+
 
 def transpose(things):
     return map(list,zip(*things))
@@ -78,113 +52,6 @@ There is going to be a main that is
 3. evaluate things roc, graph_quality, select graphs
 4. draw   roc, quality of graphs, some newgraphs
 '''
-
-def get_data(assay_id):
-    active_X = pipe(assay_id, download_active, babel_load, vectorize)
-    inactive_X = pipe(assay_id, download_inactive, babel_load, vectorize)
-
-    X = vstack((active_X, inactive_X))
-    y = np.array([1] * active_X.shape[0] + [-1] * inactive_X.shape[0])
-    graphs = list(pipe(assay_id, download_active, babel_load)) + list(pipe(assay_id, download_inactive, babel_load))
-    stats={'active':active_X.shape[0], 'inactive':inactive_X.shape[0]}
-
-    return X, y, graphs, stats
-
-
-def make_data(assay_id,repeats=3,
-              trainclass=1,
-              train_sizes=[50],
-              not_train_class=-1,
-              test_size_per_class=300,
-              pick_strategy='random'):
-    '''
-    :param assay_id:
-    :param repeats:
-    :param trainclass:
-    :param train_size:
-    :param not_train_class:
-    :param test_size_per_class:
-    :param neg_vec_count:
-    :param pick_strategy:
-            "random"
-            "highest scoring "
-            "cluster"
-    :return:
-    [trainsize_i]*repeats
-    '''
-
-    #   [(test), test_trained_esti, train_graphs] for each repeat
-
-    X,y,graphs,stats= get_data(assay_id)
-    print 'indicator of tak-ease:'
-    print eden_tricks.task_difficulty(X,y)
-    print stats
-
-    esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
-    esti.fit(X,y)
-
-    def get_run( train_size):
-        neg_vec_count = train_size
-        # get train items
-        possible_train_ids = np.where(y == trainclass)[0]
-        possible_negative_train_ids = np.where(y != trainclass)[0]
-        if pick_strategy=='random':
-            train_ids = np.random.permutation(possible_train_ids)[:train_size]
-            train_ids_neg = np.random.permutation(possible_negative_train_ids)[:train_size]
-        else:
-            # RATE ALL THE GRAPHS, TAKE THE BEST #TRAINSIZE
-            #if pick_strategy == highest_scoring
-            possible_train_graphs_values = esti.decision_function(X[possible_train_ids])
-            train_ids = np.argpartition(possible_train_graphs_values,-train_size)[-train_size:]
-            train_ids_neg = np.random.permutation(possible_negative_train_ids)[:train_size]
-            if pick_strategy == 'cluster':
-                # CLUSTER THE BEST ONES, USE THE BIGGEST CLUSTER
-                n_clusters=3
-                clusterer=KMeans(n_clusters=n_clusters)
-                res=clusterer.fit_predict(X[train_ids])
-                max=0
-                id = -1
-                for i in range(n_clusters):
-                    cnt = np.count_nonzero(res==i)
-                    if cnt > max:
-                        max=cnt
-                        id = i
-                    #print "%d %d" % (i, cnt)
-                train_ids = train_ids[res==id]
-                # this sould be the same as train_ids, so the classes are ballanced...
-                neg_vec_count = len(train_ids)
-
-
-        train_graphs = list(selection_iterator(graphs, train_ids.tolist()))
-        train_graphs_neg = list(selection_iterator(graphs, train_ids_neg.tolist()))
-
-        # MAKE THE DATA
-        possible_test_ids_1 = np.array(list( set(possible_train_ids) - set(train_ids)))
-        possible_test_ids_0 = np.array(list( set(possible_negative_train_ids) - set(train_ids_neg)))
-
-        test_ids_1 = np.random.permutation(possible_test_ids_1)[:test_size_per_class]
-        shuffled_negs = np.random.permutation(possible_test_ids_0)
-        test_ids_0 = shuffled_negs[:test_size_per_class]
-
-        test_ids= np.hstack((test_ids_1,test_ids_0))
-        X_test = X[test_ids]
-        Y_test = y[test_ids]
-
-
-        neg_vec_ids=shuffled_negs[test_size_per_class:test_size_per_class + neg_vec_count]
-        neg_vecs=X[neg_vec_ids]
-
-        #esti= SGDClassifier(loss='log')
-        #esti.fit(X_test,Y_test)
-        # neg_vecs is bogus (ima yoparatta kedo)
-        return {'X_test':X_test,'y_test':Y_test,'oracle':esti,
-                'graphs_train':train_graphs,
-                'neg_vecs':neg_vecs,
-                "train_graphs_neg":train_graphs_neg}
-
-    return [ [get_run(ts) for ts in train_sizes] for i in range(repeats)]
-
-
 
 ############################################################################
 
@@ -239,55 +106,70 @@ def make_inbetween_plot(labels=[50,100,150],means=[(.20, .35, .40),(.20, .40 , .
     plt.show()
 
 
+class draw:
+    def __init__(self, xlabels, dynamic_y):
+        # plt clear ! however that works..
+        self.xlabels=xlabels
+        self.dynamic_y = dynamic_y
+
+    def add_line(self,means,variances):
+
+
+def make_inbetween_plot(labels=[50,100,150],
+                        means=[(.20, .35, .40),(.20, .40 , .60),(.20,.25,.30)],
+                        stds=[(.2, .3,.5),(.3, .3,.3),(.5,.5,.5)],
+                        fname='asd.png',
+                        dynamic_ylim=False):
+    '''
+    asdasd
+    '''
+    #N = len(labels)
+    #ind = np.arange(N)
+    #width = 0.35
+
+
+    plt.figure(figsize=(14, 5))
+    fig, ax = plt.subplots()
+    for label in (ax.get_xticklabels() + ax.get_yticklabels()):
+        label.set_fontname('Arial')
+        label.set_fontsize(14)
+
+
+    #ax.ylim(0.0,100)
+    if dynamic_ylim:
+        plt.ylim=(0, max(means[-1]) + max(stds[-1]))
+    else:
+        plt.ylim(-.5,1.5)
+    plt.xlim(0,1000)
+
+
+    def fillthing(y,std,label='some label',col='b'):
+        y=np.array(y)
+        std=np.array(std)
+        ax.fill_between(labels,y+std,y-std,facecolor=col,alpha=0.15,linewidth=0)
+        #ax.plot(labels,y,label=label,color='gray')
+        ax.plot(labels,y,color='gray')
+
+    fillthing(means[0],stds[0],col='#6A9AE2')
+    fillthing(means[1],stds[1],col='#F94D4D')
+    fillthing(means[2],stds[2],col='#555555')
+
+    ax.plot(labels,means[0],label='default',color='b',linewidth=2.0)
+    ax.plot(labels,means[1],label='hand',color='r',linewidth=2.0)
+    ax.plot(labels,means[2],label='learned',color='black',linewidth=2.0)
+    #ax.plot(labels,infernal,label='Infernal',color='#3F3F3F',linewidth=2.0,ls='--')
+    #plt.axhline(y=38, color='black',linewidth=2,ls='dotted')
+
+    # add some text for labels, title and axes ticks
+    labelfs=16
+    ax.set_ylabel('score (by oracle)',fontsize=labelfs)
+    ax.set_xlabel('number of seeds given',fontsize=labelfs)
+    ax.legend(loc='upper left')
+    plt.savefig(fname)
+    plt.show()
 
 ###################################################################
 
-
-class output_corrected_graphlearn(graphlearn01.graphlearn.Sampler):
-    def _return_formatter(self, graphlist, mon):
-        for e in graphlist:
-            yield e
-
-
-def get_no_abstr(n_jobs=1):
-    return output_corrected_graphlearn(n_steps=50,n_jobs=n_jobs)
-
-def get_hand_abstr(n_jobs=1):
-    return output_corrected_graphlearn(n_jobs=n_jobs,
-    select_cip_max_tries=100,
-    size_constrained_core_choice=5,
-            # i changed the defaults for the strategy... it seems that
-            # 1. size constraint is not combinable with the other chip choice plans
-            # 2. size constraint core choice reduces the error rate compared to by_frequency, (probably)
-    decomposer= decompose.MinorDecomposer(),
-    graphtransformer= mole.GraphTransformerCircles())
-    
-
-def get_casc_abstr(n_jobs=1):
-    mycascade = cascade.Cascade(depth=2,
-                          debug=False,
-                          multiprocess=True,
-                          max_group_size=6,
-                          min_group_size=2,
-                          num_classes=2)
-
-    return output_corrected_graphlearn(n_jobs=n_jobs,
-    select_cip_max_tries=100,
-    size_constrained_core_choice=5,
-    decomposer= decompose.MinorDecomposer(),
-    graphtransformer= mycascade)
-
-def make_samplers_chem(n_jobs=1):
-    '''
-    :return:
-     all 3 samplers have a fit_transform(graphs),....
-     when it comes to sampling given 2 classes, there needs to be more work :)
-    '''
-        
-    samplers=[get_no_abstr(n_jobs=n_jobs),get_hand_abstr(n_jobs=n_jobs),get_casc_abstr(n_jobs=n_jobs)]
-    #samplers=[get_casc_abstr() for i in range(3)]
-    #print 'samplers are fake atm'
-    return samplers
 
 ###################################################################
 
@@ -313,41 +195,6 @@ def runwrap(sampler,graphs,attempt=0):
     return (graphs,timeused)
 
 
-def runwrap2(sampler,graphs,graphs_neg,attempt=0):
-    start=time.time()
-
-    try:
-
-        decomposers_p = [sampler.decomposer.make_new_decomposer(data)
-                       for data in sampler.graph_transformer.fit_transform(graphs)]
-
-        decomposers_n = [sampler.decomposer.make_new_decomposer(data)
-                         for data in sampler.graph_transformer.fit_transform(graphs_neg)]
-
-        sampler.fit_grammar(decomposers_p)
-
-        sampler.estimator= glesti.TwoClassEstimator()
-        sampler.fit_estimator(decomposers_p,negative_decomposers=decomposers_n)
-
-        graphs=list(sampler.fit_transform(graphs))
-
-
-    except ValueError:
-        # this happens when name_estimator does not have enough subgraphs extracted to train
-        # the nn:    clusterclassifier: fit: neigh.fit(data)
-        if attempt < 3:
-            return runwrap2(sampler,graphs,attempt+1)
-        else:
-            print 'runwrap failed, retrying! graphs#%d' % len(graphs)
-            raise Exception("attept 3... there were %d graphs" % len(graphs))
-    if not graphs:
-        print "runwrap_no_results"
-        exit()
-    timeused = time.time()- start
-    return (graphs,timeused)
-
-
-
 def run_experiments(samplers, data):
     # this is bypassing the time annotation:
     #return  [[[  list(s.fit_transform(problem_dict['graphs_train']))
@@ -366,7 +213,7 @@ def evaluate(graphs, task_data):
     # evaluate results...
     for s in graphs: # s stands for sampler.. its the result for a single sampla
         # error vectorize, test
-        data = [[ (test( task_data[0][0]['oracle'], vectorize(outgraphs))[1],time)
+        data = [[ (test(task_data[0][0]['oracle'], vectorize(outgraphs))[1], time)
                   for outgraphs,time in repeats ]
                 for repeats in s]
         # they are ordered by repeats now.
@@ -388,6 +235,35 @@ def evaluate(graphs, task_data):
         means_time.append(res_time[0])
         stds_time.append(res_time[1])
     return means,stds, means_time, stds_time
+
+def evaluate2(num_rep_gt, oracle, time=False):
+    '''
+    plan is to just return an iterator over data points..
+    so a call to evaluate produces exactly 1 line
+
+    also task data musst be selcted carefully
+    '''
+
+    for num in num_rep_gt:
+        interest=[ repeat[time] for repeat in num]
+        if time:
+            i=np.array(interest)
+            yield i.mean(), i.var()
+        else:
+            # interest should be a list of list of graphs
+            interest=[ e for e in lisd  for lisd in interest ]
+            interest= vectorize(interest)
+            res = test(oracle,interest)
+            r1,r2 = zip(*res) # which is right?
+
+            print r1,r2
+            exit()
+
+            yield r1.mean(), r1.var()
+            yield r2.mean(), r2.var()
+
+
+
 
 
 # make a data source
@@ -430,11 +306,11 @@ if __name__ == '__main__':
         samplers_chem = make_samplers_chem(n_jobs=n_jobs)
 
         data_chem  = make_data(assay_id,
-                       repeats=repeats,
-                       trainclass=1,
-                       train_sizes=train_sizes,
-                       test_size_per_class=300,
-                       pick_strategy='cluster') # cluster random  highscoring
+                               repeats=repeats,
+                               trainclass=1,
+                               train_sizes=train_sizes,
+                               test_size_per_class=300,
+                               pick_strategy='cluster') # cluster random  highscoring
 
         import dill 
         dill.dump(samplers_chem, open("samplers", "w"))
