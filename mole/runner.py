@@ -100,7 +100,6 @@ if __name__ == '__main__':
 
     taskid = int(sys.argv[1])-1 # sge can not have id 0 :/
     task=get_task(taskid)
-    task= a[taskid]
     res = clean_sample.runwrap(task)
     #sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
     dill.dump(res,open(filename(task),'wb'))
