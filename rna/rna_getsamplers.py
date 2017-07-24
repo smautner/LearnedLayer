@@ -15,23 +15,40 @@ class rna_default_sampler(infernal.AbstractSampler):
             return ('',graph.graph['sequence'])
         self.monitors.append(mon)
         yield map(graph_to_rna, graphlist)
-            
-def make_samplers_rna(n_jobs=1):
 
+
+
+
+
+
+
+
+
+def make_samplers_rna(n_jobs=1):
+    return [get_default_sampler(n_jobs=n_jobs),get_hand_sampler(n_jobs=n_jobs), get_learned_sampler(n_jobs=n_jobs)]
+
+
+
+
+def get_default_sampler(n_jobs=1, kwargs={}):
     # default sampla
+    kwargs=kwargs.copy()
+
+    grammaropts= kwargs.get('grammar_options',{})
+    kwargs.pop("grammar_options",None)
     sampler=rna_default_sampler(
-                            #radius_list=[0,1],
-                            #thickness_list=[2],
-                            #min_cip_count=1,
-                            #min_interface_count=2,
+                            garmmar=grammar(**grammaropts),
                             graphtransformer=forgitransform.GraphTransformerForgi(fold_only=True),
-                            #decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True),
-                            #estimator=estimator
-                            #feasibility_checker=feasibility
                             n_jobs=n_jobs,
-                            include_seed=False
+                            include_seed=False,
+                            **kwargs,
                            )
-    samplers=[sampler]
+    return sampler
+
+
+
+
+def get_hand_sampler(n_jobs=1):
     # forgi transformer
     # check if calc_contracted_edge_nodes false is not breaking things
     sampler=infernal.AbstractSampler(
@@ -49,7 +66,11 @@ def make_samplers_rna(n_jobs=1):
                             #feasibility_checker=feasibility
                             include_seed=False
                            )
-    samplers.append(sampler)
+    return sampler
+
+
+
+def get_learned_sampler(n_jobs=1):
     sampler=infernal.AbstractSampler(
                             #radius_list=[0,1],
                             #thickness_list=[2],
@@ -63,8 +84,7 @@ def make_samplers_rna(n_jobs=1):
                             include_seed=False
                            )
 
-    samplers.append(sampler)
-    return samplers
+    return sampler
     
 
 
