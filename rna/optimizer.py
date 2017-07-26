@@ -132,7 +132,7 @@ def run_once(scale=50, samplertype_int=None):
     # run
     resa=run_sampler_wrap(make_sampler(params,samplertype_int),a)
     resb=run_sampler_wrap(make_sampler(params,samplertype_int),b)
-    return "%.4f__%.4f__%s" % (resa,resb,params)
+    return "%.4f__%.4f__%s\n" % (resa,resb,params)
 
 
 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
 """
 TODO:
-1. dump errors somewehre else..  !!! IMPORTANT
+1. dump errors somewehre else..
 2. duplicate this for the chem case
 
 """
