@@ -37,11 +37,11 @@ def get_default_sampler(n_jobs=1, kwargs={}):
     grammaropts= kwargs.get('grammar_options',{})
     kwargs.pop("grammar_options",None)
     sampler=rna_default_sampler(
-                            garmmar=grammar(**grammaropts),
+                            grammar=grammar(**grammaropts),
                             graphtransformer=forgitransform.GraphTransformerForgi(fold_only=True),
                             n_jobs=n_jobs,
                             include_seed=False,
-                            **kwargs,
+                            **kwargs
                            )
     return sampler
 
@@ -70,18 +70,19 @@ def get_hand_sampler(n_jobs=1):
 
 
 
-def get_learned_sampler(n_jobs=1):
+def get_learned_sampler(n_jobs=1, kwargs={}):
+
+    kwargs=kwargs.copy()
+    grammarargs=kwargs.pop("grammar_options",{})
+    learnargs=kwargs.pop("learn_params",{})
+
     sampler=infernal.AbstractSampler(
-                            #radius_list=[0,1],
-                            #thickness_list=[2],
+                            grammar=grammar(**grammarargs),
                             n_jobs=n_jobs,
-                            #min_cip_count=1,
-                            #min_interface_count=2,
-                            graphtransformer= cascade.RNACascade(),
+                            graphtransformer= cascade.RNACascade(**learnargs),
                             decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=True),
-                            #estimator=estimator
-                            #feasibility_checker=feasibility
-                            include_seed=False
+                            include_seed=False,
+                            **kwargs
                            )
 
     return sampler
