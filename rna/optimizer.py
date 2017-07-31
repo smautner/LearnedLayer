@@ -24,7 +24,7 @@ def get_default_samplers_params():
                        "core_choice_bytrial",
                        "size_constrained_core_choice"]):True,
         "n_steps":random.randint(5,30),
-        "quick_skip_orig_cip":random.choice([True,False]),
+        "quick_skip_orig_cip":False#random.choice([True,False]),
     }
     if "core_choice_bytrial" in sampler_options:
         sampler_options["core_choice_bytrial_multiplier"]=random.random()+.5
@@ -43,12 +43,12 @@ def get_default_samplers_params():
         sampler_options['improving_linear_start_fraction'] = a
 
     if random.random()>0.5:
+        '''tried setting random value for max and min -> crashes always.. '''
         a=random.random()
-        b=random.random()
-        if a > b:
-            a,b=b,a
-        sampler_options['orig_cip_max_positives'] = b
-        sampler_options['orig_cip_min_positives'] = a
+        if random.random()> .5:
+            sampler_options['orig_cip_max_positives'] = a
+        else:
+            sampler_options['orig_cip_min_positives'] = a
 
     if random.random()>.5:
         sampler_options['accept_static_penalty']=random.random()

@@ -4,7 +4,8 @@ from graphlearn01.minor.rna import forgitransform as forgitransform
 from graphlearn01.learnedlayer import cascade
 from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from graphlearn01.minor.rna import get_sequence
-
+from graphlearn01.feasibility import FeasibilityChecker,default_check
+from graphlearn01.minor.rna.rnafeasibility import is_rna
 
 # moved the class outside the make_samplers_rna function because dill died
 class rna_default_sampler(infernal.AbstractSampler):
@@ -15,12 +16,6 @@ class rna_default_sampler(infernal.AbstractSampler):
             return ('',graph.graph['sequence'])
         self.monitors.append(mon)
         yield map(graph_to_rna, graphlist)
-
-
-
-
-
-
 
 
 
@@ -41,6 +36,7 @@ def get_default_sampler(n_jobs=1, kwargs={}):
                             graphtransformer=forgitransform.GraphTransformerForgi(fold_only=True),
                             n_jobs=n_jobs,
                             include_seed=False,
+                            feasibility_checker=FeasibilityChecker(checklist=[default_check,is_rna]),
                             **kwargs
                            )
     return sampler
