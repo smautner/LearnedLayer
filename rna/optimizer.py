@@ -66,20 +66,15 @@ def get_learned_samplers_params():
     '''
     params=get_default_samplers_params()
 
-    if random.randint()>.5:
-        a=random.randint()
-        b=random.randint()
-        if a > b:
-            a,b=b,a
+    if random.random()>.5:
+        a=random.sample(range(2,11),2)
     else:
-        a=2
-        b=6
-
+        a=[2,6]
     learn_params={
         "depth": random.randint(2,4),
-        "max_group_size": b,
-        "min_group_size":a,
-        "group_score_threshold": random.randint/.7
+        "max_group_size":max(a),
+        "min_group_size":min(a),
+        "group_score_threshold": random.random()/.7 # WAT?
     }
 
     params['learn_params'] = learn_params

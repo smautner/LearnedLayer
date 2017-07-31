@@ -58,8 +58,8 @@ def get_hand_sampler(n_jobs=1):
                             select_cip_max_tries=50,
                             graphtransformer=forgitransform.GraphTransformerForgi(),
                             decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=False),
+                            feasibility_checker=FeasibilityChecker(checklist=[default_check,is_rna]),
                             #estimator=estimator
-                            #feasibility_checker=feasibility
                             include_seed=False
                            )
     return sampler
@@ -77,6 +77,7 @@ def get_learned_sampler(n_jobs=1, kwargs={}):
                             n_jobs=n_jobs,
                             graphtransformer= cascade.RNACascade(**learnargs),
                             decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=True),
+                            feasibility_checker=FeasibilityChecker(checklist=[default_check,is_rna]),
                             include_seed=False,
                             **kwargs
                            )
