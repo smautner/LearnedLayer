@@ -6,7 +6,7 @@ import random
 
 import logging
 from eden.util import configure_logging
-configure_logging(logging.getLogger(),verbosity=3)
+configure_logging(logging.getLogger(),verbosity=2)
 
 def get_default_samplers_params():
     grammar_options={"radius_list":list(range(random.randint(1,4))),
@@ -134,9 +134,8 @@ def run_once(scale=50, samplertype_int=None):
 
 # ok so we get an array id to know where to write the results
 
-
 types_of_samplers=2
-num_sequences=50
+num_sequences=100
 
 if __name__ == "__main__":
     import sys
@@ -148,7 +147,7 @@ if __name__ == "__main__":
     jobtype={0:"default",1:"learned",2:"hand"}
 
     while True:
-        res = run_once(scale=num_sequences, samplertype_int=jobno % 3)
+        res = run_once(scale=num_sequences, samplertype_int=(jobno % 4 != 0))
         with open("res_%s_%d" % (jobtype[jobno%types_of_samplers],jobno), "a") as myfile:
             myfile.write(res)
 
