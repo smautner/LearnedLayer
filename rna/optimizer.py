@@ -135,7 +135,7 @@ def run_once(scale=50, samplertype_int=None):
 # ok so we get an array id to know where to write the results
 
 types_of_samplers=2
-num_sequences=100
+num_sequences=80
 
 if __name__ == "__main__":
     import sys
