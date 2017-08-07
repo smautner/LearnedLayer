@@ -6,6 +6,7 @@ from eden.graph import Vectorizer
 from eden.util import selection_iterator
 from eden_chem.io.pubchem import download
 from eden_chem.io.rdkitutils import sdf_to_nx as babel_load
+from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from graphlearn01.learnedlayer import cascade as cascade
 from graphlearn01.minor import decompose as decompose
 from graphlearn01.minor.molecule import transform_cycle as mole
@@ -55,7 +56,6 @@ def make_data(assay_id,
     print 'indicator of tak-ease:'
     print eden_tricks.task_difficulty(X,y)
 
-
     for size in train_sizes:
         for repeat in range(repeats):
             poslist = np.random.permutation(range(len(graphs_p)))[:size]
@@ -82,34 +82,54 @@ class output_corrected_graphlearn(graphlearn01.graphlearn.Sampler):
             yield e
 
 
-def get_no_abstr(n_jobs=1):
-    return output_corrected_graphlearn(n_steps=50,n_jobs=n_jobs)
+def get_no_abstr(n_jobs=1, kwargs={"n_steps":50}):
+    kwargs=kwargs.copy()
+    grammaropts= kwargs.get('grammar_options',{})
+    kwargs.pop("grammar_options",None)
+    return output_corrected_graphlearn(
+        n_jobs=n_jobs,
+        grammar=grammar(**grammaropts),**kwargs)
 
 
-def get_hand_abstr(n_jobs=1):
+def get_hand_abstr(n_jobs=1,kwargs={
+    "select_cip_max_tries":30,
+    "size_constrained_core_choice":5, }):
+
+    kwargs=kwargs.copy()
+    grammaropts= kwargs.get('grammar_options',{})
+    kwargs.pop("grammar_options",None)
+
     return output_corrected_graphlearn(n_jobs=n_jobs,
-    select_cip_max_tries=100,
-    size_constrained_core_choice=5,
-            # i changed the defaults for the strategy... it seems that
-            # 1. size constraint is not combinable with the other chip choice plans
-            # 2. size constraint core choice reduces the error rate compared to by_frequency, (probably)
-    decomposer= decompose.MinorDecomposer(),
-    graphtransformer= mole.GraphTransformerCircles())
+        grammar=grammar(**grammaropts),
+        decomposer= decompose.MinorDecomposer(),
+        graphtransformer= mole.GraphTransformerCircles(),
+        **kwargs)
 
 
-def get_casc_abstr(n_jobs=1):
+def get_casc_abstr(n_jobs=1, kwargs={
+    "select_cip_max_tries":30,
+    "size_constrained_core_choice":5, }):
+
+    kwargs=kwargs.copy()
+    grammarargs=kwargs.pop("grammar_options",{})
+    learnargs=kwargs.pop("learn_params",{})
+
+
+    mycascade = cascade.Cascade(**learnargs)
+
+    '''
     mycascade = cascade.Cascade(depth=2,
                           debug=False,
                           multiprocess=True,
                           max_group_size=6,
                           min_group_size=2,
                           num_classes=2)
+    '''
 
     return output_corrected_graphlearn(n_jobs=n_jobs,
-    select_cip_max_tries=100,
-    size_constrained_core_choice=5,
-    decomposer= decompose.MinorDecomposer(),
-    graphtransformer= mycascade)
+        decomposer= decompose.MinorDecomposer(),
+        grammar=grammar(**grammarargs),
+        graphtransformer= mycascade,**kwargs)
 
 def make_samplers_chem(n_jobs=1):
     '''

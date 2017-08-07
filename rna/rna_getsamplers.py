@@ -79,8 +79,7 @@ def get_learned_sampler(n_jobs=1, kwargs={}):
                             decomposer=RnaDecomposer(output_sequence=True,pre_vectorizer_rm_f=True,calc_contracted_edge_nodes=True),
                             feasibility_checker=FeasibilityChecker(checklist=[default_check,is_rna]),
                             include_seed=False,
-                            **kwargs
-                           )
+                            **kwargs)
 
     return sampler
     

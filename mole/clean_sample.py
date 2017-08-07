@@ -31,8 +31,8 @@ def runwrap(task,attempt=0):
         if attempt < 3:
             return runwrap(task,attempt+1)
         else:
-            print 'runwrap failed, retrying! graphs#%d' % len(gdict)
-            raise Exception("attept 3... there were %d graphs" % len(gdict))
+            print 'runwrap failed, retrying! graphs#%d' % len(graphs)
+            raise Exception("attept 3... there were %d graphs" % len(graphs))
     if not graphs:
         print "runwrap_no_results"
         exit()
