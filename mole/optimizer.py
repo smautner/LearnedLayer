@@ -7,7 +7,7 @@ import random
 
 import logging
 from eden.util import configure_logging
-configure_logging(logging.getLogger(),verbosity=2)
+configure_logging(logging.getLogger(),verbosity=3)
 
 def get_default_samplers_params():
     grammar_options={"radius_list":list(range(random.randint(1,4))),
@@ -24,7 +24,7 @@ def get_default_samplers_params():
                        "core_choice_byscore",
                        "core_choice_bytrial",
                        "size_constrained_core_choice"]):True,
-        "n_steps":random.randint(5,30),
+        "n_steps":random.randint(5,10),                                                     # !!! only 10 is max here
         "quick_skip_orig_cip":False#random.choice([True,False]),
     }
     if "core_choice_bytrial" in sampler_options:
@@ -116,7 +116,7 @@ def run_sampler_wrap(sampler,data):
     print "run_sampler result", result
     return avgscore(result)
 '''
-def run_once(alldata, scale=50, samplertype_int=None):
+def run_once(alldata, scale=50, samplertype_int=None, forceparams=None):
     # get data
     X,y,graphs_p,graphs_n,esti = alldata
     poslist = np.random.permutation(range(len(graphs_p)))[:scale]
@@ -125,10 +125,16 @@ def run_once(alldata, scale=50, samplertype_int=None):
     pos= list(selection_iterator(graphs_p, poslist))
 
     # get random parameters and sampler
-    params = get_random_params(samplertype_int)
+    if forceparams:
+        params=forceparams
+    else:
+        params = get_random_params(samplertype_int)
     taski=sampsNdata.task(samplertype_int,scale,0,make_sampler(params,samplertype_int),neg,pos)
 
     print "run_once params" ,params
+    if True:# debug
+        with open("params","w") as f:
+            f.write(str(params))
     # run
     run=clean_sample.runwrap(taski)
     resa=eva.graphs_to_scores(run.graphs,esti)
@@ -146,10 +152,18 @@ if __name__ == "__main__":
         print "need to know where to write my results"
         exit()
 
+    alldata= sampsNdata.get_data("1834")
+
+    if sys.argv[1]=="debug_last":
+        with open("params","r") as f:
+            params=eval(f.read())
+        print run_once(alldata,samplertype_int=1,forceparams=params)
+        exit()
+
+
     jobno=int(sys.argv[1])
     jobtype={0:"default",1:"learned",2:"hand"}
 
-    alldata= sampsNdata.get_data("1834")
     while True:
         res = run_once(alldata,scale=numgraphs, samplertype_int=(jobno % 3))
         with open("res_%s_%d" % (jobtype[jobno%3],jobno), "a") as myfile:

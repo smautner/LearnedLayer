@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse import vstack
 import eden_tricks
-import graphlearn01
+from graphlearn01 import graphlearn as glearn
 from eden.graph import Vectorizer
 from eden.util import selection_iterator
 from eden_chem.io.pubchem import download
@@ -76,7 +76,7 @@ def make_data(assay_id,
 #  SAMPLERS
 ######################################
 
-class output_corrected_graphlearn(graphlearn01.graphlearn.Sampler):
+class output_corrected_graphlearn(glearn.Sampler):
     def _return_formatter(self, graphlist, mon):
         for e in graphlist:
             yield e
