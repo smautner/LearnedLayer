@@ -54,7 +54,7 @@ def get_task(taskid):
 
 
 repeats=3
-train_sizes=[20,50,100,200,400,600,800,1000]
+train_sizes=[20,50,100,200,400,600]
 assid = '651610'
 
 if False: # DEBUG :)

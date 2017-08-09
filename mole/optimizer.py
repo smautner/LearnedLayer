@@ -24,7 +24,7 @@ def get_default_samplers_params():
                        "core_choice_byscore",
                        "core_choice_bytrial",
                        "size_constrained_core_choice"]):True,
-        "n_steps":random.randint(5,10),                                                     # !!! only 10 is max here
+        "n_steps":random.randint(5,50),                                                     # !!! only 10 is max here
         "quick_skip_orig_cip":False#random.choice([True,False]),
     }
     if "core_choice_bytrial" in sampler_options:
