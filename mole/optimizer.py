@@ -156,7 +156,7 @@ if __name__ == "__main__":
         print "need to know what to do"
         exit()
 
-    alldata= sampsNdata.get_data("651610")
+    alldata= sampsNdata.get_data(dataset)
     exit()
 
 
