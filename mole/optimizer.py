@@ -146,14 +146,17 @@ def run_once(alldata, scale=50, samplertype_int=None, forceparams=None):
 # ok so we get an array id to know where to write the results
 
 numgraphs=400
+dataset="651610"
+if True:
+    dataset= "1834"
+    numgraphs= 50
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:    # NO ARGS
         print "need to know what to do"
         exit()
 
-    alldata= sampsNdata.get_data("651610")
-    exit()
+    alldata= sampsNdata.get_data(dataset)
 
 
     if sys.argv[1]=="debug_last":
