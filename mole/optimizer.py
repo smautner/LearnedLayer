@@ -157,7 +157,6 @@ if __name__ == "__main__":
         exit()
 
     alldata= sampsNdata.get_data(dataset)
-    exit()
 
 
     if sys.argv[1]=="debug_last":
