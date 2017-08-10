@@ -75,7 +75,7 @@ def get_learned_samplers_params():
         "depth": random.randint(0,6),
         "max_group_size":max(a),
         "min_group_size":min(a),
-        "group_score_threshold": random.random()/.7 # WAT?
+        "group_score_threshold": random.random() # WAT?
     }
 
     params['learn_params'] = learn_params

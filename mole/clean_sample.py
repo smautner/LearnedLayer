@@ -11,10 +11,10 @@ def runwrap(task,attempt=0):
     start=time.time()
 
     # make pos/neg decomposers
-    decomposers_p = [task.sampler.decomposer.make_new_decomposer(data)
-                   for data in task.sampler.graph_transformer.fit_transform(task.pos)]
     decomposers_n = [task.sampler.decomposer.make_new_decomposer(data)
                      for data in task.sampler.graph_transformer.fit_transform(task.neg)]
+    decomposers_p = [task.sampler.decomposer.make_new_decomposer(data)
+                   for data in task.sampler.graph_transformer.fit_transform(task.pos)]
     # fit grammar
     task.sampler.fit_grammar(decomposers_p)
 
@@ -22,7 +22,7 @@ def runwrap(task,attempt=0):
     task.sampler.estimator= glesti.TwoClassEstimator()
     task.sampler.fit_estimator(decomposers_p,negative_decomposers=decomposers_n)
     # run
-    graphs=  list(task.sampler.fit_transform(task.pos))
+    graphs=  list(task.sampler.transform(task.pos))
 
 
     timeused = time.time()- start
