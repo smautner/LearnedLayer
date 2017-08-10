@@ -145,9 +145,9 @@ def run_once(alldata, scale=50, samplertype_int=None, forceparams=None):
 
 # ok so we get an array id to know where to write the results
 
-numgraphs=400
+numgraphs=300
 dataset="651610"
-if True:
+if False:
     dataset= "1834"
     numgraphs= 50
 if __name__ == "__main__":
