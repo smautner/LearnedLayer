@@ -1,7 +1,7 @@
 import time
 from graphlearn01 import estimate as glesti
 from collections import namedtuple
-
+from copy import deepcopy
 #task = namedtuple("task",'samplerid size repeat sampler neg pos')
 
 sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
@@ -14,7 +14,7 @@ def runwrap(task,attempt=0):
     decomposers_n = [task.sampler.decomposer.make_new_decomposer(data)
                      for data in task.sampler.graph_transformer.fit_transform(task.neg)]
     decomposers_p = [task.sampler.decomposer.make_new_decomposer(data)
-                   for data in task.sampler.graph_transformer.fit_transform(task.pos)]
+                   for data in task.sampler.graph_transformer.fit_transform(deepcopy(task.pos))]
     # fit grammar
     task.sampler.fit_grammar(decomposers_p)
 
