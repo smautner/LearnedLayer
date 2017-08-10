@@ -39,8 +39,15 @@ def draw(processed, get_mean, get_var,filename): # see runner :)
         y_values = np.array([get_mean(x) for x in oneline])
         y_variances= np.array([get_var(x) for x in oneline])
         col = getcol(oneline[0])
-        plt.fill_between(sizes, y_values+y_variances , y_values -y_variances, facecolor=col, alpha=0.15, linewidth=0)
+        plt.fill_between(sizes, y_values+y_variances , y_values -y_variances, facecolor=col,
+                         alpha=0.15, linewidth=0,label='%s' % samplerid_to_samplername(oneline[0].samplerid))
         plt.plot(sizes,y_values,color=col)
-        plt.savefig(filename)
+
+    plt.legend()
+    plt.savefig(filename)
 
 
+
+def samplerid_to_samplername(i):
+    # see clean make  tasks -> make samplers chem if the order is awrite:)
+    return {0:'noabstr',1:'hand',2:"learned"}[i]

@@ -72,7 +72,7 @@ def get_learned_samplers_params():
     else:
         a=[2,6]
     learn_params={
-        "depth": random.randint(2,4),
+        "depth": random.randint(0,6),
         "max_group_size":max(a),
         "min_group_size":min(a),
         "group_score_threshold": random.random()/.7 # WAT?
@@ -145,14 +145,16 @@ def run_once(alldata, scale=50, samplertype_int=None, forceparams=None):
 
 # ok so we get an array id to know where to write the results
 
-numgraphs=150
+numgraphs=400
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:    # NO ARGS
-        print "need to know where to write my results"
+        print "need to know what to do"
         exit()
 
-    alldata= sampsNdata.get_data("1834")
+    alldata= sampsNdata.get_data("651610")
+    exit()
+
 
     if sys.argv[1]=="debug_last":
         with open("params","r") as f:
@@ -162,11 +164,14 @@ if __name__ == "__main__":
 
 
     jobno=int(sys.argv[1])
+    samplertype=(jobno%4==0)
     jobtype={0:"default",1:"learned",2:"hand"}
 
+
+
     while True:
-        res = run_once(alldata,scale=numgraphs, samplertype_int=(jobno % 3))
-        with open("res_%s_%d" % (jobtype[jobno%3],jobno), "a") as myfile:
+        res = run_once(alldata,scale=numgraphs, samplertype_int=samplertype)
+        with open("res_%s_%d" % (jobtype[samplertype],jobno), "a") as myfile:
             myfile.write(res)
 
 
