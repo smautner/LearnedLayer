@@ -7,7 +7,7 @@ import random
 
 import logging
 from eden.util import configure_logging
-configure_logging(logging.getLogger(),verbosity=3)
+configure_logging(logging.getLogger(),verbosity=0)
 
 def get_default_samplers_params():
     grammar_options={"radius_list":list(range(random.randint(1,4))),
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 
 
     jobno=int(sys.argv[1])
-    samplertype=(jobno%4==0)
+    samplertype=(jobno%4!=0)
     jobtype={0:"default",1:"learned",2:"hand"}
 
 
