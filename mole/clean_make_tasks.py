@@ -1,10 +1,12 @@
 import numpy as np
+from rdkit import Chem
 from scipy.sparse import vstack
 import eden_tricks
 from graphlearn01 import graphlearn as glearn
 from eden.graph import Vectorizer
 from eden.util import selection_iterator
 from eden_chem.io.pubchem import download
+from eden_chem.io.rdkitutils import rdkmol_to_nx
 from eden_chem.io.rdkitutils import sdf_to_nx as babel_load
 from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from graphlearn01.learnedlayer import cascade as cascade
@@ -13,6 +15,7 @@ from graphlearn01.minor.molecule import transform_cycle as mole
 from sklearn.linear_model import SGDClassifier
 from toolz import pipe, curry
 from collections import namedtuple
+import itertools
 import copy
 
 task = namedtuple("task",'samplerid size repeat sampler neg pos')
@@ -53,8 +56,9 @@ def get_data(assay_id, pos_count=100,neg_count=100, selectall=False):
         select_p = lambda x:x
         select_n = lambda x:x
 
-    graphs_p = list(pipe(assay_id, download_active,select_p,babel_load))
-    graphs_n = list(pipe(assay_id, download_inactive,select_n, babel_load))
+
+    graphs_p = list(pipe(assay_id, download_active,Chem.SDMolSupplier,lambda x: itertools.ifilter(None,x), select_p, rdkmol_to_nx))
+    graphs_n = list(pipe(assay_id, download_inactive,Chem.SDMolSupplier,lambda x :itertools.ifilter(None,x), select_n, rdkmol_to_nx))
 
 
     esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
