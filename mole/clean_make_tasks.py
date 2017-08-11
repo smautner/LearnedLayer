@@ -32,13 +32,29 @@ def vectorize(thing):
     return v.transform(thing)
 
 
-def get_data(assay_id):
+def get_data(assay_id, pos_count=100,neg_count=100, selectall=False):
+    '''
+    :param assay_id:
+    :param pos_count:
+    :param neg_count:
+    :return:
+    pos/neg count restrict the number of graphs that are returned
+    '''
     active_X = pipe(assay_id, download_active, babel_load, vectorize)
     inactive_X = pipe(assay_id, download_inactive, babel_load, vectorize)
     X = vstack((active_X, inactive_X))
     y = np.array([1] * active_X.shape[0] + [-1] * inactive_X.shape[0])
-    graphs_p = list(pipe(assay_id, download_active, babel_load))
-    graphs_n = list(pipe(assay_id, download_inactive, babel_load))
+
+    if not selectall:
+        select_p= lambda x: selection_iterator(x,np.random.choice(active_X.shape[0], pos_count, replace=False))
+        select_n= lambda x: selection_iterator(x,np.random.choice(inactive_X.shape[0], neg_count, replace=False))
+        print "selecting pos graphs: %d/%d neg graphs in set %d/%d"  % (pos_count, active_X.shape[0], neg_count, inactive_X.shape[0])
+    else:
+        select_p = lambda x:x
+        select_n = lambda x:x
+
+    graphs_p = list(pipe(assay_id, download_active,select_p,babel_load))
+    graphs_n = list(pipe(assay_id, download_inactive,select_n, babel_load))
 
 
     esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')

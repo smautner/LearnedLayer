@@ -178,8 +178,3 @@ if __name__ == "__main__":
             myfile.write(res)
 
 
-"""
-TODO:
-    make samplers needs to accept the dict. 
-    
-"""
