@@ -156,7 +156,7 @@ if __name__ == "__main__":
         print "need to know what to do"
         exit()
 
-    alldata= sampsNdata.get_data(dataset)
+    alldata= sampsNdata.get_data(dataset, pos_count=numgraphs, neg_count=numgraphs)
 
 
     if sys.argv[1]=="debug_last":
