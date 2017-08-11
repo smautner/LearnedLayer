@@ -116,6 +116,8 @@ def run_sampler_wrap(sampler,data):
     print "run_sampler result", result
     return avgscore(result)
 '''
+
+
 def run_once(alldata, scale=50, samplertype_int=None, forceparams=None):
     # get data
     X,y,graphs_p,graphs_n,esti = alldata
@@ -151,6 +153,9 @@ dataset="651610"
 if False:
     dataset= "1834"
     numgraphs= 50
+
+
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:    # NO ARGS

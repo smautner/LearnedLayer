@@ -34,6 +34,9 @@ def vectorize(thing):
     return v.transform(thing)
 
 
+
+
+
 def get_data(assay_id, pos_count=100,neg_count=100, selectall=False):
     '''
     :param assay_id:
@@ -55,10 +58,8 @@ def get_data(assay_id, pos_count=100,neg_count=100, selectall=False):
         select_p = lambda x:x
         select_n = lambda x:x
 
-
     graphs_p = list(pipe(assay_id, download_active,load_sdf, select_p,lambda x: map(rdkmol_to_nx,x)))
     graphs_n = list(pipe(assay_id, download_active,load_sdf, select_n,lambda x: map(rdkmol_to_nx,x)))
-
 
     esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
     esti.fit(X,y)
