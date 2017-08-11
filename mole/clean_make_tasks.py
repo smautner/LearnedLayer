@@ -67,7 +67,7 @@ def make_data(assay_id,
               repeats=3,
               train_sizes=[50]):
 
-    X,y,graphs_p,graphs_n, esti = get_data(assay_id)
+    X,y,graphs_p,graphs_n, esti = get_data(assay_id,selectall=True)
 
     print 'indicator of tak-ease:'
     print eden_tricks.task_difficulty(X,y)

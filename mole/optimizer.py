@@ -119,17 +119,18 @@ def run_sampler_wrap(sampler,data):
 def run_once(alldata, scale=50, samplertype_int=None, forceparams=None):
     # get data
     X,y,graphs_p,graphs_n,esti = alldata
+    """
     poslist = np.random.permutation(range(len(graphs_p)))[:scale]
     neglist = np.random.permutation(range(len(graphs_n)))[:scale]
     neg= list(selection_iterator(graphs_n, neglist))
     pos= list(selection_iterator(graphs_p, poslist))
-
+    """
     # get random parameters and sampler
     if forceparams:
         params=forceparams
     else:
         params = get_random_params(samplertype_int)
-    taski=sampsNdata.task(samplertype_int,scale,0,make_sampler(params,samplertype_int),neg,pos)
+    taski=sampsNdata.task(samplertype_int,scale,0,make_sampler(params,samplertype_int),graphs_n,graphs_p)
 
     print "run_once params" ,params
     if True:# debug
