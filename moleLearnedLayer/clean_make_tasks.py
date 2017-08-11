@@ -2,12 +2,12 @@ import numpy as np
 from scipy.sparse import vstack
 import eden_tricks
 from graphlearn01 import graphlearn as glearn
+from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from eden.graph import Vectorizer
 from eden.util import selection_iterator
 from eden_chem.io.pubchem import download
 from eden_chem.io.rdkitutils import rdkmol_to_nx, load_sdf
 from eden_chem.io.rdkitutils import sdf_to_nx as babel_load
-from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from graphlearn01.learnedlayer import cascade as cascade
 from graphlearn01.minor import decompose as decompose
 from graphlearn01.minor.molecule import transform_cycle as mole
@@ -19,11 +19,8 @@ import copy
 
 task = namedtuple("task",'samplerid size repeat sampler neg pos')
 
-###################################
-#  DATA [[data p1 with reps][data p2 with repeats]..], oracle
-###################################
 
-download_active = curry(download)(active=True,stepsize=50) # default stepsize = 50 (way to few)
+download_active = curry(download)(active=True,stepsize=50)
 download_inactive = curry(download)(active=False,stepsize=50)
 
 def vectorize(thing):

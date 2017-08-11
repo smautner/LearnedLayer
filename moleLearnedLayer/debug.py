@@ -4,21 +4,21 @@ we are here to fix them
 '''
 
 import dill
-import mole.clean_sample
+import moleLearnedLayer.clean_sample
 
-X,y,graphs,stats = mole.clean_make_tasks.get_data("1834")
-d1,d2= mole.clean_make_tasks.make_data("1834", repeats=1, train_sizes=[20, 100])
+X,y,graphs,stats = moleLearnedLayer.clean_make_tasks.get_data("1834")
+d1,d2= moleLearnedLayer.clean_make_tasks.make_data("1834", repeats=1, train_sizes=[20, 100])
 d1=d1[0]
 d2=d2[0]
 
-sampler = mole.clean_make_tasks.get_no_abstr()
+sampler = moleLearnedLayer.clean_make_tasks.get_no_abstr()
 
 #sampler.graph_transformer.debug=True
 
 
 if False: # save
-    res= mole.clean_sample.runwrap2(sampler, d1['graphs_train'], d1['train_graphs_neg'])
-    res2= mole.clean_sample.runwrap2(sampler, d2['graphs_train'], d2['train_graphs_neg'])
+    res= moleLearnedLayer.clean_sample.runwrap2(sampler, d1['graphs_train'], d1['train_graphs_neg'])
+    res2= moleLearnedLayer.clean_sample.runwrap2(sampler, d2['graphs_train'], d2['train_graphs_neg'])
 
     with open("debugdata","wb") as file:
         dill.dump([res,res2], file)
@@ -28,8 +28,8 @@ else:
         res,res2= dill.load(file)
 
 
-r1= d1['oracle'].decision_function(mole.clean_make_tasks.vectorize(res[0]))
-r2= d2['oracle'].decision_function(mole.clean_make_tasks.vectorize(res2[0]))
+r1= d1['oracle'].decision_function(moleLearnedLayer.clean_make_tasks.vectorize(res[0]))
+r2= d2['oracle'].decision_function(moleLearnedLayer.clean_make_tasks.vectorize(res2[0]))
 
 print r1.mean()
 print r2.mean()

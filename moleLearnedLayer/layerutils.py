@@ -5,7 +5,7 @@ i should rewrite this...
 import matplotlib
 import time
 
-from mole.clean_make_tasks import vectorize, make_data, make_samplers_chem
+from moleLearnedLayer.clean_make_tasks import vectorize, make_data, make_samplers_chem
 
 matplotlib.use('Agg')
 # DISPLAY IMPORTS

@@ -2,9 +2,8 @@ import time
 from graphlearn01 import estimate as glesti
 from collections import namedtuple
 from copy import deepcopy
-#task = namedtuple("task",'samplerid size repeat sampler neg pos')
 
-sampled = namedtuple("sampled",'samplerid,size,repeat,time,graphs')
+sampled = namedtuple("sampled",'samplerid,size,repeat,time, graphs')
 
 def runwrap(task,attempt=0):
 
