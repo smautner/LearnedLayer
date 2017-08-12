@@ -1,6 +1,7 @@
 import random
 import util
 from copy import deepcopy
+from eden.graph import vectorize
 
 def get_default_samplers_params():
     grammar_options={"radius_list":list(range(random.randint(1,4))),
@@ -95,17 +96,80 @@ def make_sampler(params,typ):
         return util.get_hand_abstr(kwargs=params)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+####
+# actual interface :)
+####
+def get_optout_fname(typ,run_id):
+    return 'optimizer_run_%d_%d' % (typ,run_id)
+
 def run(data,typ,run_id):
     params=get_random_params(typ)
     sampler = make_sampler(params,typ)
     results=[]
     for gpos,gneg in util.loadfile(data):
         #task = namedtuple("task",'samplerid size repeat sampler neg pos')
-        results.append(  util.sample( util.task( 1, len(gpos),0,  deepcopy(sampler),gneg,gpos)) )
-    util.dumpfile( (results,params) ,'optimizer_run_%d' % run_id)
+        results.append(  util.sample( util.task( typ, len(gpos),0,  deepcopy(sampler),gneg,gpos)) )
+    util.dumpfile( (results,params) , get_optout_fname(typ,run_id))
 
 
 
 def run_many(data,typ=1,num_tries=20):
+    """
+    :param data:        see util init_optimisation
+    :param typ:         sampler type to run on
+    :param num_tries:   number of evals that are conducted
+    :return:
+        dumps ([utils.sampled for e in data],paramsdict) > "optimizer_run_TYP_NUMTRY"
+    """
     for i in range(num_tries):
         run(data,typ,i)
+
+
+if __name__ == '__main__':
+    # yep optimize.py GRAPHFILE TYPE ID
+    import sys
+    run(*sys.argv[1:])
+
+
+#####
+#
+#####
+from collections import defaultdict
+def merge_dicts(l):
+    res=defaultdict(list)
+    for d in l:
+        for k,v in d.items():
+            res[k].append(v)
+    for k,v in res.items():
+        if type(v[0])==dict:
+            res[k]=merge_dicts(v)
+    return dict(res)
+
+
+def report(aid,typ,numtries, top=5):
+    esti = util.aid_to_linmodel(aid)
+    data= [ util.loadfile(get_optout_fname(typ,e)) for e in range(numtries) ]
+    samplist_to_graphs = lambda x: [g for e in x for g in e.graphs]
+    results = [ ( esti.decision_function(vectorize(samplist_to_graphs(sampledlist),n_jobs=1)).mean() ,params ) for sampledlist, params in data]
+    results.sort(key=lambda x:x[0],reverse=True)
+
+    getparms = lambda x: merge_dicts( [ params for score,params in x ] )
+    return getparms( results[:5] ), getparms (results[-5:])
+
+
+
+
+
+

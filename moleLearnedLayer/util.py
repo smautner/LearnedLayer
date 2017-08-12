@@ -1,8 +1,6 @@
-from toolz import curry, pipe
 from eden_chem.io.pubchem import download
 from eden_chem.io.rdkitutils import sdf_to_nx
-import random
-import dill
+from eden.graph import vectorize
 from graphlearn01 import graphlearn as glearn
 from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from graphlearn01.learnedlayer import cascade as cascade
@@ -10,8 +8,15 @@ from graphlearn01.minor import decompose as decompose
 from graphlearn01.minor.molecule import transform_cycle as mole
 from graphlearn01 import estimate as glesti
 from collections import namedtuple
+from scipy.sparse import vstack
 from copy import deepcopy
+from sklearn.linear_model import SGDClassifier
 import time
+import random
+from toolz import curry, pipe
+import dill
+import numpy as np
+
 
 #####
 # structs
@@ -37,12 +42,25 @@ def sample_pos_neg(graphs_pos,graphs_neg, size_pos=100, size_neg=100, repeats=1)
     makeset= lambda x:  (random.sample(graphs_pos,size_pos), random.sample(graphs_neg,size_neg))
     return map(makeset,range(repeats))
 
+def aid_to_linmodel(aid):
+    return graphs_to_linmodel( *getgraphs(aid) )
+
+def graphs_to_linmodel(pos,neg):
+    active_X = vectorize(pos)
+    inactive_X = vectorize(neg)
+    X = vstack((active_X, inactive_X))
+    y = np.array([1] * active_X.shape[0] + [-1] * inactive_X.shape[0])
+    esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
+    esti.fit(X,y)
+    return esti
+
 
 
 #######
 # optimisation
 #######
 def init_optimisation(aid='1834',size_pos=100,size_neg=100,repeats=3, dump=True):
+    ''' dumps [[possizeGraphs,negsizeGraphs] * repeats] into a file and returns fname '''
     pos,neg = getgraphs(aid)
     tasks = sample_pos_neg(pos,neg,size_pos,size_neg,repeats)
     if dump:
@@ -116,7 +134,7 @@ def make_samplers_chem(n_jobs=1):
     return samplers
 
 
-def runwrap(task):
+def sample(task):
     start=time.time()
     # make pos/neg decomposers
     decomposers_n = [task.sampler.decomposer.make_new_decomposer(data)

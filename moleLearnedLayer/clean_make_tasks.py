@@ -46,6 +46,8 @@ def get_data(assay_id, pos_count=100,neg_count=100, selectall=False):
     inactive_X = pipe(assay_id, download_inactive, babel_load, vectorize)
     X = vstack((active_X, inactive_X))
     y = np.array([1] * active_X.shape[0] + [-1] * inactive_X.shape[0])
+    esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
+    esti.fit(X,y)
 
     if not selectall:
         select_p= lambda x: selection_iterator(x,np.random.choice(active_X.shape[0], pos_count, replace=False))
@@ -58,8 +60,6 @@ def get_data(assay_id, pos_count=100,neg_count=100, selectall=False):
     graphs_p = list(pipe(assay_id, download_active,load_sdf, select_p,lambda x: map(rdkmol_to_nx,x)))
     graphs_n = list(pipe(assay_id, download_active,load_sdf, select_n,lambda x: map(rdkmol_to_nx,x)))
 
-    esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
-    esti.fit(X,y)
     print {'active':active_X.shape[0], 'inactive':inactive_X.shape[0]}
     return X, y, graphs_p, graphs_n,esti
 
