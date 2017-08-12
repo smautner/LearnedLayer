@@ -1,4 +1,5 @@
 import random
+import pprint
 import util
 from copy import deepcopy
 from eden.graph import vectorize
@@ -140,7 +141,7 @@ def run_many(data,typ=1,num_tries=20):
 if __name__ == '__main__':
     # yep optimize.py GRAPHFILE TYPE ID
     import sys
-    run(*sys.argv[1:])
+    run(sys.argv[1] , int(sys.argv[2]), int(sys.argv[3])  )
 
 
 #####
@@ -165,9 +166,15 @@ def report(aid,typ,numtries, top=5):
     results = [ ( esti.decision_function(vectorize(samplist_to_graphs(sampledlist),n_jobs=1)).mean() ,params ) for sampledlist, params in data]
     results.sort(key=lambda x:x[0],reverse=True)
 
-    getparms = lambda x: merge_dicts( [ params for score,params in x ] )
-    return getparms( results[:5] ), getparms (results[-5:])
+    import matplotlib.pylab as plt
+    plt.figure(figsize=(12, 6))
+    plt.hist([x[0] for x in results], 20, normed=1, alpha=.8, histtype='step', stacked=False, fill=True)
+    plt.show()
 
+    getparms = lambda x: merge_dicts( [ params for score,params in x ] )
+    best,worst = getparms( results[:5] ), getparms (results[-5:])
+    pprint.pprint(best)
+    pprint.pprint(worst)
 
 
 

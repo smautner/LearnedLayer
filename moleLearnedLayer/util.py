@@ -6,6 +6,7 @@ from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphG
 from graphlearn01.learnedlayer import cascade as cascade
 from graphlearn01.minor import decompose as decompose
 from graphlearn01.minor.molecule import transform_cycle as mole
+from graphlearn01.utils import draw
 from graphlearn01 import estimate as glesti
 from collections import namedtuple
 from scipy.sparse import vstack
@@ -23,6 +24,7 @@ import numpy as np
 ####
 sampled = namedtuple("sampled",'samplerid,size,repeat,time, graphs')
 task = namedtuple("task",'samplerid size repeat sampler neg pos')
+
 
 #########
 # generic  graph things
@@ -56,15 +58,16 @@ def graphs_to_linmodel(pos,neg):
 
 
 
+
 #######
 # optimisation
 #######
-def init_optimisation(aid='1834',size_pos=100,size_neg=100,repeats=3, dump=True):
+def init_optimisation(aid='1834',size=100,repeats=3, dump=True):
     ''' dumps [[possizeGraphs,negsizeGraphs] * repeats] into a file and returns fname '''
     pos,neg = getgraphs(aid)
-    tasks = sample_pos_neg(pos,neg,size_pos,size_neg,repeats)
+    tasks = sample_pos_neg(pos,neg,size,size,repeats)
     if dump:
-        name = 'task_%s_%d_%d_%d' % (aid,size_pos,size_neg,repeats)
+        name = 'task_%s_%d_%d_%d' % (aid,size,size,repeats)
         dumpfile(tasks,name)
         return name
     else:
@@ -134,21 +137,45 @@ def make_samplers_chem(n_jobs=1):
     return samplers
 
 
-def sample(task):
+def sample(task, debug_fit=False):
     start=time.time()
     # make pos/neg decomposers
-    decomposers_n = [task.sampler.decomposer.make_new_decomposer(data)
-                     for data in task.sampler.graph_transformer.fit_transform(task.neg)]
-    decomposers_p = [task.sampler.decomposer.make_new_decomposer(data)
-                   for data in task.sampler.graph_transformer.fit_transform(deepcopy(task.pos))]
+    numpos=len(task.pos)
+    decomposers = [task.sampler.decomposer.make_new_decomposer(data)
+                     for data in task.sampler.graph_transformer.fit_transform(task.pos,task.neg)]
+
+    if debug_fit:
+        task.sampler.graph_transformer.toggledebug()
+
+
     # fit grammar
-    task.sampler.fit_grammar(decomposers_p)
+    task.sampler.fit_grammar(decomposers)
+
 
     # fit estimator
     task.sampler.estimator= glesti.TwoClassEstimator()
-    task.sampler.fit_estimator(decomposers_p,negative_decomposers=decomposers_n)
+    task.sampler.fit_estimator(decomposers[:numpos],negative_decomposers=decomposers[numpos:])
+
+
+    if debug_fit: # we do this after the fit esti, so we can also see of the fitting crashes
+        draw.draw_grammar(task.sampler.lsgg.productions, abstract_interface=True, n_graphs_per_line=7, n_productions=5, n_graphs_per_production=7)
+        return
+
+
+
     # run
     graphs=  list(task.sampler.transform(task.pos))
     timeused = time.time()- start
-    return sampled(task.samplerid,task.size,task.repeat,timeused,graphs)
+    return sampled(task.samplerid,task.size,task.repeat,time.time()-start,graphs)
+
+
+
+
+def quickfit(aid,size,params):
+    sampler = get_casc_abstr(kwargs=params)
+
+    p,n  = getgraphs(aid)
+    po, ne = sample_pos_neg(p,n,size_pos=size,size_neg=size, repeats=1)[0]
+
+    sample( task(1,size,0,sampler,ne,po) ,debug_fit=True)
 
