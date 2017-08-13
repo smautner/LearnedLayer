@@ -162,8 +162,18 @@ def merge_dicts(l):
 def report(aid,typ,numtries, top=5):
     esti = util.aid_to_linmodel(aid)
     data= [ util.loadfile(get_optout_fname(typ,e)) for e in range(numtries) ]
-    samplist_to_graphs = lambda x: [g for e in x for g in e.graphs]
-    results = [ ( esti.decision_function(vectorize(samplist_to_graphs(sampledlist),n_jobs=1)).mean() ,params ) for sampledlist, params in data]
+
+
+    def cleandata(data):
+        for samplist,params in data:
+            graphs = [g for e in samplist for g in e.graphs]
+            if len(graphs)> 0:
+                yield (esti.decision_function(vectorize(graphs,n_jobs=1)).mean() , params)
+
+    results= [a for a in cleandata(data)]
+
+    print "%d of %d experiments crashed" % ( numtries-len(results),  numtries)
+
     results.sort(key=lambda x:x[0],reverse=True)
 
     import matplotlib.pylab as plt
@@ -172,7 +182,7 @@ def report(aid,typ,numtries, top=5):
     plt.show()
 
     getparms = lambda x: merge_dicts( [ params for score,params in x ] )
-    best,worst = getparms( results[:5] ), getparms (results[-5:])
+    best,worst = getparms( results[:top] ), getparms (results[-top:])
     pprint.pprint(best)
     pprint.pprint(worst)
 

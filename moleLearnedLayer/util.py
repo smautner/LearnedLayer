@@ -65,13 +65,13 @@ def graphs_to_linmodel(pos,neg):
 def init_optimisation(aid='1834',size=100,repeats=3, dump=True):
     ''' dumps [[possizeGraphs,negsizeGraphs] * repeats] into a file and returns fname '''
     pos,neg = getgraphs(aid)
-    tasks = sample_pos_neg(pos,neg,size,size,repeats)
+    stack_of_sampled_graphsets = sample_pos_neg(pos,neg,size,size,repeats)
     if dump:
         name = 'task_%s_%d_%d_%d' % (aid,size,size,repeats)
-        dumpfile(tasks,name)
+        dumpfile(stack_of_sampled_graphsets,name)
         return name
     else:
-        return tasks
+        return stack_of_sampled_graphsets
 
 
 ######################################
@@ -125,13 +125,15 @@ def get_casc_abstr(n_jobs=1, kwargs={
         grammar=grammar(**grammarargs),
         graphtransformer= mycascade,**kwargs)
 
-def make_samplers_chem(n_jobs=1):
+def get_all_samplers(n_jobs=1):
     '''
     :return:
      all 3 samplers have a fit_transform(graphs),....
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
-    samplers=[get_no_abstr(n_jobs=n_jobs),get_hand_abstr(n_jobs=n_jobs),get_casc_abstr(n_jobs=n_jobs)]
+    samplers=[get_no_abstr(n_jobs=n_jobs),
+              get_casc_abstr(n_jobs=n_jobs),
+              get_hand_abstr(n_jobs=n_jobs)]
     #samplers=[get_casc_abstr() for i in range(3)]
     #print 'samplers are fake atm'
     return samplers
@@ -144,14 +146,8 @@ def sample(task, debug_fit=False):
     decomposers = [task.sampler.decomposer.make_new_decomposer(data)
                      for data in task.sampler.graph_transformer.fit_transform(task.pos,task.neg)]
 
-    if debug_fit:
-        task.sampler.graph_transformer.toggledebug()
-
-
     # fit grammar
     task.sampler.fit_grammar(decomposers)
-
-
     # fit estimator
     task.sampler.estimator= glesti.TwoClassEstimator()
     task.sampler.fit_estimator(decomposers[:numpos],negative_decomposers=decomposers[numpos:])
@@ -160,12 +156,8 @@ def sample(task, debug_fit=False):
     if debug_fit: # we do this after the fit esti, so we can also see of the fitting crashes
         draw.draw_grammar(task.sampler.lsgg.productions, abstract_interface=True, n_graphs_per_line=7, n_productions=5, n_graphs_per_production=7)
         return
-
-
-
     # run
     graphs=  list(task.sampler.transform(task.pos))
-    timeused = time.time()- start
     return sampled(task.samplerid,task.size,task.repeat,time.time()-start,graphs)
 
 
