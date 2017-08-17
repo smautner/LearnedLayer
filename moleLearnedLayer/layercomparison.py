@@ -30,6 +30,7 @@ def run(filename, taskid):
     try:
         result = util.sample(tasks[taskid])
     except Exception as exc:
+        print "molelearnedlayer is showing the task object:"
         print tasks[taskid]
         import traceback
         print traceback.format_exc(20)
