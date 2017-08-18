@@ -31,7 +31,7 @@ def eval(res,oracle):
         processed.append(  processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var())  )
     return processed
 
-def draw(processed, get_mean, get_var,filename): # see runner :)
+def draw(processed, get_mean, get_var,filename=None): # see runner :)
     plt.figure(figsize=(15,5))
     for oneline in toolz.groupby(lambda x:x.samplerid, processed).values():
         oneline.sort(key=lambda x:x.size)
@@ -44,8 +44,10 @@ def draw(processed, get_mean, get_var,filename): # see runner :)
         plt.plot(sizes,y_values,color=col)
 
     plt.legend()
-    plt.savefig(filename)
-
+    if filename:
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
 def samplerid_to_samplername(i):
