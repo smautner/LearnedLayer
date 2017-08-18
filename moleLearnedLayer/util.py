@@ -24,6 +24,8 @@ import numpy as np
 ####
 sampled = namedtuple("sampled",'samplerid,size,repeat,time, graphs')
 task = namedtuple("task",'samplerid size repeat sampler neg pos')
+task2 = namedtuple("task2",'samplerid size repeat sampler neg pos negtest postest')
+processed_result=namedtuple("processed_result","samplerid, size, score_mean, score_var, time_mean, time_var")
 
 
 #########
@@ -47,11 +49,17 @@ def sample_pos_neg(graphs_pos,graphs_neg, size_pos=100, size_neg=100, repeats=1)
 def aid_to_linmodel(aid):
     return graphs_to_linmodel( *getgraphs(aid) )
 
-def graphs_to_linmodel(pos,neg):
+
+
+def graphs_to_Xy(pos,neg):
     active_X = vectorize(pos)
     inactive_X = vectorize(neg)
     X = vstack((active_X, inactive_X))
     y = np.array([1] * active_X.shape[0] + [-1] * inactive_X.shape[0])
+    return X,y
+
+def graphs_to_linmodel(pos,neg):
+    X,y = graphs_to_Xy(pos,neg)
     esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
     esti.fit(X,y)
     return esti
@@ -125,15 +133,17 @@ def get_casc_abstr(n_jobs=1, kwargs={
         grammar=grammar(**grammarargs),
         graphtransformer= mycascade,**kwargs)
 
-def get_all_samplers(n_jobs=1):
+def get_all_samplers(n_jobs=1,params=[{},{},{}],select=[0,1,2]):
     '''
     :return:
      all 3 samplers have a fit_transform(graphs),....
      when it comes to sampling given 2 classes, there needs to be more work :)
     '''
-    samplers=[get_no_abstr(n_jobs=n_jobs),
-              get_casc_abstr(n_jobs=n_jobs),
-              get_hand_abstr(n_jobs=n_jobs)]
+    samplers=[get_no_abstr(n_jobs=n_jobs,kwargs=params[0]),
+              get_casc_abstr(n_jobs=n_jobs,kwargs=params[1]),
+              get_hand_abstr(n_jobs=n_jobs,kwargs=params[2])]
+
+    samplers=[samplers[i] for i in select]
     #samplers=[get_casc_abstr() for i in range(3)]
     #print 'samplers are fake atm'
     return samplers
@@ -171,3 +181,8 @@ def quickfit(aid,size,params):
 
     sample( task(1,size,0,sampler,ne,po) ,debug_fit=True)
 
+
+def graphs_to_scores(graphs, oracle):
+    graphs = vectorize(graphs)
+    scores = oracle.decision_function(graphs)
+    return scores
