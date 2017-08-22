@@ -1,6 +1,6 @@
 import random
 import pprint
-import util
+from moleLearnedLayer import util as util
 from copy import deepcopy
 from eden.graph import vectorize
 
