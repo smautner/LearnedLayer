@@ -161,7 +161,7 @@ def merge_dicts(l):
 
 def report(aid,typ,numtries, top=5):
     esti = util.aid_to_linmodel(aid)
-    data= [ util.loadfile(get_optout_fname(typ,e)) for e+1 in range(numtries) ]
+    data= [ util.loadfile(get_optout_fname(typ,e+1)) for e in range(numtries) ]
 
 
     def cleandata(data):
