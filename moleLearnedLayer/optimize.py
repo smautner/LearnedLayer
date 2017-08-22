@@ -159,7 +159,7 @@ def merge_dicts(l):
     return dict(res)
 
 
-def report(aid,typ,numtries, top=5):
+def report(aid,typ,numtries, top=5, fname=None):
     esti = util.aid_to_linmodel(aid)
     data= [ util.loadfile(get_optout_fname(typ,e+1)) for e in range(numtries) ]
 
@@ -179,8 +179,10 @@ def report(aid,typ,numtries, top=5):
     import matplotlib.pylab as plt
     plt.figure(figsize=(12, 6))
     plt.hist([x[0] for x in results], 20, normed=1, alpha=.8, histtype='step', stacked=False, fill=True)
-    plt.show()
-
+    if not fname:
+        plt.show()
+    else:
+        plt.savefig(fname)
     getparms = lambda x: merge_dicts( [ params for score,params in x ] )
     best,worst = getparms( results[:top] ), getparms (results[-top:])
     pprint.pprint(best)
