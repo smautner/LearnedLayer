@@ -4,6 +4,9 @@ from moleLearnedLayer import util as util
 from copy import deepcopy
 from eden.graph import vectorize
 
+
+
+
 def get_default_samplers_params():
     grammar_options={"radius_list":list(range(random.randint(1,4))),
             "thickness_list":list(range(1,random.randint(2,4))),
@@ -159,7 +162,7 @@ def merge_dicts(l):
     return dict(res)
 
 
-def report(aid,typ,numtries, top=5, fname=None):
+def report(aid,typ,numtries, top=5, show=False):
     esti = util.aid_to_linmodel(aid)
     data= [ util.loadfile(get_optout_fname(typ,e+1)) for e in range(numtries) ]
 
@@ -176,13 +179,12 @@ def report(aid,typ,numtries, top=5, fname=None):
 
     results.sort(key=lambda x:x[0],reverse=True)
 
-    import matplotlib.pylab as plt
-    plt.figure(figsize=(12, 6))
-    plt.hist([x[0] for x in results], 20, normed=1, alpha=.8, histtype='step', stacked=False, fill=True)
-    if not fname:
+    if show:
+        import matplotlib.pylab as plt
+        plt.figure(figsize=(12, 6))
+        plt.hist([x[0] for x in results], 20, normed=1, alpha=.8, histtype='step', stacked=False, fill=True)
         plt.show()
-    else:
-        plt.savefig(fname)
+
     getparms = lambda x: merge_dicts( [ params for score,params in x ] )
     best,worst = getparms( results[:top] ), getparms (results[-top:])
     pprint.pprint(best)
