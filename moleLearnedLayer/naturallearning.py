@@ -111,7 +111,7 @@ def xy_to_curve(X,y):
     plt.legend(loc='lower right')
     plt.show()
 
-    return lambda x: inverse_func(x,popt)
+    return lambda x: inverse_func(x,popt), lambda x:func(x,*popt)
 
 
 def crossval_to_inversefunc(assay_id,train_sizes):
@@ -120,6 +120,23 @@ def crossval_to_inversefunc(assay_id,train_sizes):
     return xy_to_curve(x,y)
 
 
+def lastplot(func,x,y):
+    print x,y
+
+    #plt.ylim((min(y)-.05, max(y)+.05))
+    plt.ylim(.2, .8)
+
+
+    # original line
+    show_x=np.array(range(0,1000))
+    plt.plot(show_x, [func(xx) for xx in show_x], label="normal trining curve") #same as line above \/
+
+    # our new stuff
+    plt.plot(x,y,'ro',label='training curce with with generated instances')
+
+    plt.legend(loc='lower right')
+
+    plt.show()
 ############
 # running stuff
 ############

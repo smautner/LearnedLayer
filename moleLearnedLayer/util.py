@@ -1,6 +1,6 @@
 from eden_chem.io.pubchem import download
 from eden_chem.io.rdkitutils import sdf_to_nx
-from eden.graph import vectorize
+from eden.graph import Vectorizer
 from graphlearn01 import graphlearn as glearn
 from graphlearn01.localsubstitutablegraphgrammar import LocalSubstitutableGraphGrammar as grammar
 from graphlearn01.learnedlayer import cascade as cascade
@@ -18,6 +18,10 @@ from toolz import curry, pipe
 import dill
 import numpy as np
 
+
+def vectorize(instances):
+    vec=Vectorizer()
+    return vec._transform_serial(instances)
 
 #####
 # structs
@@ -173,11 +177,18 @@ def sample(task, debug_fit=False):
 
 
 
+
 def quickfit(aid,size,params):
     sampler = get_casc_abstr(kwargs=params)
 
-    p,n  = getgraphs(aid)
-    po, ne = sample_pos_neg(p,n,size_pos=size,size_neg=size, repeats=1)[0]
+    if aid=='bursi':
+        from eden.io import gspan
+        po,ne = list(gspan.gspan_to_eden("bursi.pos.gspan")), list(gspan.gspan_to_eden("bursi.neg.gspan"))
+    else:
+        p,n  = getgraphs(aid)
+
+
+        po, ne = sample_pos_neg(p,n,size_pos=size,size_neg=size, repeats=1)[0]
 
     sample( task(1,size,0,sampler,ne,po) ,debug_fit=True)
 
