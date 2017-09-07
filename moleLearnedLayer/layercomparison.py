@@ -71,6 +71,7 @@ def eval(res,oracle):
 
 def draw(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda x:x.score_var,show=False): # see runner :)
     plt.figure(figsize=(15,5))
+
     for oneline in toolz.groupby(lambda x:x.samplerid, processed).values():
         oneline.sort(key=lambda x:x.size)
         sizes = [x.size for x in oneline]

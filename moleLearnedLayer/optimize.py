@@ -8,9 +8,9 @@ from eden.graph import vectorize
 
 
 def get_default_samplers_params():
-    grammar_options={"radius_list":list(range(random.randint(1,4))),
-            "thickness_list":list(range(1,random.randint(2,4))),
-            "min_cip_count":random.randint(1,3),
+    grammar_options={"radius_list":list(range(random.randint(1,2))),
+            "thickness_list":list(range(1,random.randint(2,3))),
+            "min_cip_count": random.randint(1,3),
             "min_interface_count":random.randint(2,3),
             }
 
@@ -75,6 +75,15 @@ def get_learned_samplers_params():
         "min_group_size":min(a),
         "group_score_threshold": random.random() # WAT?
     }
+
+    learn_params= {     'dbscan_range': .75,
+                        #'vectorizer_cluster': eden.graph.Vectorizer(complexity=3, n_jobs=1, inner_normalization=True,
+                        #                                            normalization=True),
+                        'depth': random.randint(2,4),
+                        'group_score_threshold': random.randint(20,100)/100.0,
+                        'min_clustersize': 5,  # this is an exclusive parameter :)
+                        'max_group_size': 7,
+                        'min_group_size': 2}
 
     params['learn_params'] = learn_params
 

@@ -16,6 +16,7 @@ import time
 import random
 from toolz import curry, pipe
 import dill
+from eden.io import gspan
 import numpy as np
 
 
@@ -128,7 +129,6 @@ def get_casc_abstr(n_jobs=1, kwargs={
     grammarargs=kwargs.pop("grammar_options",{})
     learnargs=kwargs.pop("learn_params",{})
 
-
     mycascade = cascade.Cascade(**learnargs)
 
 
@@ -153,12 +153,15 @@ def get_all_samplers(n_jobs=1,params=[{},{},{}],select=[0,1,2]):
     return samplers
 
 
-def sample(task, debug_fit=False):
+def sample(task, debug_fit=False,skipgrammar=False):
     start=time.time()
     # make pos/neg decomposers
     numpos=len(task.pos)
     decomposers = [task.sampler.decomposer.make_new_decomposer(data)
                      for data in task.sampler.graph_transformer.fit_transform(task.pos,task.neg)]
+
+    if skipgrammar:
+        return
 
     # fit grammar
     task.sampler.fit_grammar(decomposers)
@@ -178,22 +181,42 @@ def sample(task, debug_fit=False):
 
 
 
-def quickfit(aid,size,params):
+def quickfit(aid,size,params, skipgrammar=False):
     sampler = get_casc_abstr(kwargs=params)
 
-    if aid=='bursi':
-        from eden.io import gspan
+    if aid=='bursi_all':
         po,ne = list(gspan.gspan_to_eden("bursi.pos.gspan")), list(gspan.gspan_to_eden("bursi.neg.gspan"))
+    elif aid=='load_nx_dumps':
+        po,ne = loadfile("pos.nxdump"), loadfile("neg.nxdump")
     else:
         p,n  = getgraphs(aid)
 
-
         po, ne = sample_pos_neg(p,n,size_pos=size,size_neg=size, repeats=1)[0]
 
-    sample( task(1,size,0,sampler,ne,po) ,debug_fit=True)
+    sample( task(1,size,0,sampler,ne,po) ,debug_fit=True, skipgrammar=skipgrammar)
+
+
 
 
 def graphs_to_scores(graphs, oracle):
     graphs = vectorize(graphs)
     scores = oracle.decision_function(graphs)
     return scores
+
+
+
+def bursi_get_extremes(num=200):
+    po,ne = list(gspan.gspan_to_eden("bursi.pos.gspan")), list(gspan.gspan_to_eden("bursi.neg.gspan"))
+    X,y = graphs_to_Xy(po,ne)
+    esti = SGDClassifier(average=True, class_weight='balanced', shuffle=True, n_jobs=4, loss='log')
+    esti.fit(X,y)
+    res= [ (score,idd) for idd, score in enumerate(esti.decision_function(X))] # list
+    res.sort()
+    graphs=po+ne
+    # returns pos/neg
+    return [graphs[idd] for (score,idd) in res[0-num:]], [graphs[idd] for (score,idd) in res[:num] ]
+
+
+
+
+
