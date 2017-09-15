@@ -9,95 +9,46 @@ from eden.graph import vectorize
 
 
 def get_default_samplers_params():
-    grammar_options={"radius_list":list(range(random.randint(1,2))),
-            "thickness_list":list(range(1,random.randint(2,3))),
-            "min_cip_count": random.randint(1,3),
-            "min_interface_count":random.randint(2,3),
+
+    grammar_options={"radius_list":[0,1],
+            "thickness_list":[2],
+            "min_cip_count": 2,
+            "min_interface_count": 2,
             }
-
-
     sampler_options={
         "grammar_options":grammar_options,
-
-        random.choice(["core_choice_byfrequency",
-                       "core_choice_byscore",
-                       "core_choice_bytrial",
-                       "size_constrained_core_choice"]):True,
-        "n_steps":random.randint(5,50),
-        "quick_skip_orig_cip":False#random.choice([True,False]),
+        "core_choice_byfrequency":True,
+        "n_steps":25,
+        "quick_skip_orig_cip":True
     }
-    if "core_choice_bytrial" in sampler_options:
-        sampler_options["core_choice_bytrial_multiplier"]=random.random()+.5
-    if "size_constrained_core_choice" in sampler_options:
-        sampler_options['size_constrained_core_choice'] = random.randint(0,8)
-
-
-
-
-    if random.random()>0.5:
-        a=random.random()
-        b=random.random()
-        if a > b:
-            a,b=b,a
-        sampler_options['improving_threshold_fraction'] = b
-        sampler_options['improving_linear_start_fraction'] = a
-
-    if random.random()>0.5:
-        '''tried setting random value for max and min -> crashes always.. '''
-        a=random.random()
-        if random.random()> .5:
-            sampler_options['orig_cip_max_positives'] = a
-        else:
-            sampler_options['orig_cip_min_positives'] = a
-
-    if random.random()>.5:
-        sampler_options['accept_static_penalty']=random.random()
-
+    sampler_options['accept_static_penalty']=.2
     return sampler_options
 
 
-def get_learned_samplers_params():
+def getallparams():
+    allparams=[]
+    for dilude in [True,False]:
+        for treshpercent in [5,6,7,8,9,10,11,12]:
+            tresh = treshpercent/100.0
+            for depth in [1,2,3]:
+                params=get_default_samplers_params()
+                learn_params={
+                'dbscan_range': .75,
+                'annotate_dilude_score': dilude,
+                'depth': depth,
+                'group_score_threshold': tresh,
+                'min_clustersize': 5,  # this is an exclusive parameter :)
+                'max_group_size': 7,
+                'min_group_size': 2}
+                params['learn_params'] = learn_params
+                allparams.append(params)
+    return allparams
 
-    '''
-    depth=2,
-    max_group_size=6,
-    min_group_size=2,
-    group_score_threshold=0,
-    '''
-    params=get_default_samplers_params()
 
-    if random.random()>.5:
-        a=random.sample(range(2,11),2)
-    else:
-        a=[2,6]
-    learn_params={
-        "depth": random.randint(0,6),
-        "max_group_size":max(a),
-        "min_group_size":min(a),
-        "group_score_threshold": random.random() # WAT?
-    }
 
-    learn_params= {     'dbscan_range': .75,
-                        #'vectorizer_cluster': eden.graph.Vectorizer(complexity=3, n_jobs=1, inner_normalization=True,
-                        #                                            normalization=True),
-                        'depth': random.randint(2,4),
-                        'group_score_threshold': random.randint(5,40)/100.0,
-                        'min_clustersize': 5,  # this is an exclusive parameter :)
-                        'max_group_size': 7,
-                        'min_group_size': 2}
-
-    params['learn_params'] = learn_params
-
-    return params
-
-def get_random_params(type):
-    if type==0:
-        return get_default_samplers_params()
-    if type==1:
-        return get_learned_samplers_params()
-    if type==2:
-        # return get_cycle_samplers_params(), cycle has no params on its own
-        return get_default_samplers_params()
+def get_params(runid):
+    params=getallparams()
+    return params[runid]
 
 
 
@@ -115,25 +66,20 @@ def make_sampler(params,typ):
 
 
 
-
-
-
-
-
-
-
 ####
 # actual interface :)
 ####
 def get_optout_fname(typ,run_id):
-    return 'optout/optimizer_run_%d_%d' % (typ,run_id)
+    return 'optout_grid/optimizer_run_%d_%d' % (typ,run_id)
 
 def run(data,typ,run_id):
     fname = get_optout_fname(typ,run_id)
     if os.path.exists(fname):
         print 'not rerunning %d' % run_id
         return
-    params=get_random_params(typ)
+
+    params=get_params(run_id-1)
+
     sampler = make_sampler(params,typ)
     results=[]
     for gpos,gneg in util.loadfile(data):

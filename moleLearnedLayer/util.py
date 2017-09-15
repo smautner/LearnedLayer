@@ -39,7 +39,11 @@ processed_result=namedtuple("processed_result","samplerid, size, score_mean, sco
 dumpfile = lambda thing, filename: dill.dump(thing, open(filename, "w"))
 loadfile = lambda filename: dill.load(open(filename, "r"))
 
+load_nx_dumps = lambda:  (loadfile("pos.nxdump"), loadfile("neg.nxdump"))
+
 def getgraphs(aid):
+    if aid == 'bursi':
+        return list(gspan.gspan_to_eden("bursi.pos.gspan")), list(gspan.gspan_to_eden("bursi.neg.gspan"))
     download_active = curry(download)(active=True,stepsize=50)
     download_inactive = curry(download)(active=False,stepsize=50)
     active = pipe(aid, download_active, sdf_to_nx,list)
@@ -50,6 +54,7 @@ def getgraphs(aid):
 def sample_pos_neg(graphs_pos,graphs_neg, size_pos=100, size_neg=100, repeats=1):
     makeset= lambda x:  (random.sample(graphs_pos,size_pos), random.sample(graphs_neg,size_neg))
     return map(makeset,range(repeats))
+
 
 def aid_to_linmodel(aid):
     return graphs_to_linmodel( *getgraphs(aid) )
@@ -161,7 +166,7 @@ def sample(task, debug_fit=False,skipgrammar=False):
                      for data in task.sampler.graph_transformer.fit_transform(task.pos,task.neg)]
 
     if skipgrammar:
-        return
+        return [d._unaltered_graph for d in decomposers]
 
     # fit grammar
     task.sampler.fit_grammar(decomposers)
@@ -183,17 +188,12 @@ def sample(task, debug_fit=False,skipgrammar=False):
 
 def quickfit(aid,size,params, skipgrammar=False):
     sampler = get_casc_abstr(kwargs=params)
-
-    if aid=='bursi_all':
-        po,ne = list(gspan.gspan_to_eden("bursi.pos.gspan")), list(gspan.gspan_to_eden("bursi.neg.gspan"))
-    elif aid=='load_nx_dumps':
-        po,ne = loadfile("pos.nxdump"), loadfile("neg.nxdump")
+    if aid=='load_nx_dumps':
+        po,ne= load_nx_dumps()
     else:
         p,n  = getgraphs(aid)
-
         po, ne = sample_pos_neg(p,n,size_pos=size,size_neg=size, repeats=1)[0]
-
-    sample( task(1,size,0,sampler,ne,po) ,debug_fit=True, skipgrammar=skipgrammar)
+    return sample( task(1,size,0,sampler,ne,po) ,debug_fit=True, skipgrammar=skipgrammar)
 
 
 
