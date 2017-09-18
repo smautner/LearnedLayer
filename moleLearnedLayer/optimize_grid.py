@@ -27,10 +27,10 @@ def get_default_samplers_params():
 
 def getallparams():
     allparams=[]
-    for dilude in [True,False]:
-        for treshpercent in [5,6,7,8,9,10,11,12]:
+    for dilude in [False]: # true seems bad
+        for treshpercent in range(10,26):
             tresh = treshpercent/100.0
-            for depth in [1,2,3]:
+            for depth in [2,3]:
                 params=get_default_samplers_params()
                 learn_params={
                 'dbscan_range': .75,
