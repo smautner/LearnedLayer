@@ -18,7 +18,7 @@ from toolz import curry, pipe
 import dill
 from eden.io import gspan
 import numpy as np
-
+import sklearn
 
 def vectorize(instances):
     vec=Vectorizer()
@@ -50,16 +50,22 @@ def getgraphs(aid):
     inactive = pipe(aid, download_inactive, sdf_to_nx, list)
     return active,inactive
 
-
 def sample_pos_neg(graphs_pos,graphs_neg, size_pos=100, size_neg=100, repeats=1):
     makeset= lambda x:  (random.sample(graphs_pos,size_pos), random.sample(graphs_neg,size_neg))
     return map(makeset,range(repeats))
 
+def sample_pos_neg_no_duplicates(pos,neg,size,repeats):
+    res=[]
+    for i in range(repeats):
+        random.shuffle(pos)
+        random.shuffle(neg)
+        res.append((pos[:size],neg[:size]))
+        pos=pos[size:]
+        neg=neg[size:]
+    return res
 
 def aid_to_linmodel(aid):
     return graphs_to_linmodel( *getgraphs(aid) )
-
-
 
 def graphs_to_Xy(pos,neg):
     active_X = vectorize(pos)
@@ -74,6 +80,15 @@ def graphs_to_linmodel(pos,neg):
     esti.fit(X,y)
     return esti
 
+def graphs_to_acc(g1,g2,g3,g4):
+    '''
+    train pos, train neg, test pos, test neg
+    '''
+    esti=graphs_to_linmodel(g1,g2)
+    X,y= graphs_to_Xy(g1,g2)
+    ypred = esti.predict(X)
+    acc = sklearn.metrics.accuracy_score(y,ypred)
+    return acc
 
 
 
@@ -82,7 +97,7 @@ def graphs_to_linmodel(pos,neg):
 #######
 def init_optimisation(aid='1834',size=100,repeats=3, dump=True):
     ''' dumps [[possizeGraphs,negsizeGraphs] * repeats] into a file and returns fname '''
-    pos,neg = getgraphs(aid)
+    pos,neg = getgrapudos(aid)
     stack_of_sampled_graphsets = sample_pos_neg(pos,neg,size,size,repeats)
     if dump:
         name = 'task_%s_%d_%d_%d' % (aid,size,size,repeats)
