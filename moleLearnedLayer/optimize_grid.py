@@ -1,4 +1,5 @@
 import random
+import numpy as np
 import os
 import pprint
 from moleLearnedLayer import util as util
@@ -82,9 +83,11 @@ def run(data,typ,run_id):
 
     sampler = make_sampler(params,typ)
     results=[]
-    for gpos,gneg in util.loadfile(data):
+
+
+    for i,(gpos,gneg) in enumerate(util.loadfile(data)[0]):
         #task = namedtuple("task",'samplerid size repeat sampler neg pos')
-        results.append(  util.sample( util.task( typ, len(gpos),0,  deepcopy(sampler),gneg,gpos)) )
+        results.append(  util.sample( util.task( typ, len(gpos),i,  deepcopy(sampler),gneg,gpos)) )
     util.dumpfile( (results,params) , fname)
 
 
@@ -130,8 +133,10 @@ def check_output(typ,numtries):
         if not os.path.exists(get_optout_fname(typ,e+1)):
             print e+1
 
-def report(aid,typ,numtries, top=5, show=False):
-    esti = util.aid_to_linmodel(aid)
+def report(taskfilename,typ,numtries, top=5, show=False):
+
+
+    estis = util.loadfile(taskfilename)[1]
     import os
 
     data=[]
@@ -146,9 +151,8 @@ def report(aid,typ,numtries, top=5, show=False):
 
     def cleandata(data):
         for samplist,params in data:
-            graphs = [g for e in samplist for g in e.graphs]
-            if len(graphs)> 0:
-                yield (esti.decision_function(vectorize(graphs,n_jobs=1)).mean() , params)
+            r= [esti.decision_function(vectorize(repeat.graphs) )  for esti,repeat in zip(estis, samplist)]
+            yield ( np.array(r).mean(), params)
 
     results= [a for a in cleandata(data)]
 
@@ -166,7 +170,6 @@ def report(aid,typ,numtries, top=5, show=False):
     best,worst = getparms( results[:top] ), getparms (results[-top:])
     pprint.pprint(best)
     pprint.pprint(worst)
-
 
 
 

@@ -97,14 +97,24 @@ def graphs_to_acc(g1,g2,g3,g4):
 #######
 def init_optimisation(aid='1834',size=100,repeats=3, dump=True):
     ''' dumps [[possizeGraphs,negsizeGraphs] * repeats] into a file and returns fname '''
-    pos,neg = getgrapudos(aid)
-    stack_of_sampled_graphsets = sample_pos_neg(pos,neg,size,size,repeats)
+    pos,neg = getgraphs(aid)
+
+    stack_of_sampled_graphsets = sample_pos_neg_ESTI(pos,neg,size,size,repeats)
+
     if dump:
         name = 'task_%s_%d_%d_%d' % (aid,size,size,repeats)
         dumpfile(stack_of_sampled_graphsets,name)
         return name
     else:
         return stack_of_sampled_graphsets
+
+
+def sample_pos_neg_ESTI(graphs_pos,graphs_neg, size_pos=100, size_neg=100, repeats=1):
+    def makeset(a):
+        random.shuffle(graphs_pos)
+        random.shuffle(graphs_neg)
+        return (graphs_pos[:size_pos] , graphs_neg[:size_neg]) , graphs_to_linmodel( graphs_pos[size_pos:], graphs_neg[size_neg:])
+    return zip(* map(makeset,range(repeats)))
 
 
 ######################################

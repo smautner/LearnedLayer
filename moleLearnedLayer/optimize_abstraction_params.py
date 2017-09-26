@@ -36,6 +36,9 @@ def optimize(graphs, depth,graph_num,num_tries_per_depth_level=30):
 
         for ex in map(lambda x:copy.deepcopy(trans), range(num_tries_per_depth_level)):
             try:
+
+                #def test_values(ex,graphss,graphs):
+
                 # set value we want to try and init
                 ex.score_threshold, ex.cluster_classifier.dbscan_range =  random.uniform(0.05,0.55), random.uniform(0.55,0.95)
                 ex.prepfit()
@@ -50,6 +53,7 @@ def optimize(graphs, depth,graph_num,num_tries_per_depth_level=30):
                 # transform 3rd and  4th set  -> train and test ;; get accuracy
                 re = [ex.transform(graphs[a][b]) for a,b in [(2,0),(2,1),(3,0),(3,1)]]
                 acc= util.graphs_to_acc(*re)
+
 
                 if acc>best_solution[1]:
                     best_solution=(ex,acc)

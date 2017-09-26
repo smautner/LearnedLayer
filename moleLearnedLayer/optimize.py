@@ -1,4 +1,5 @@
 import random
+import numpy as np
 import os
 import pprint
 from moleLearnedLayer import util as util
@@ -136,9 +137,9 @@ def run(data,typ,run_id):
     params=get_random_params(typ)
     sampler = make_sampler(params,typ)
     results=[]
-    for gpos,gneg in util.loadfile(data):
+    for i,(gpos,gneg) in enumerate(util.loadfile(data)[0]):
         #task = namedtuple("task",'samplerid size repeat sampler neg pos')
-        results.append(  util.sample( util.task( typ, len(gpos),0,  deepcopy(sampler),gneg,gpos)) )
+        results.append(  util.sample( util.task( typ, len(gpos),i,  deepcopy(sampler),gneg,gpos)) )
     util.dumpfile( (results,params) , fname)
 
 
@@ -184,10 +185,12 @@ def check_output(typ,numtries):
         if not os.path.exists(get_optout_fname(typ,e+1)):
             print e+1
 
-def report(aid,typ,numtries, top=5, show=False):
-    esti = util.aid_to_linmodel(aid)
-    import os
+def report(taskfilename,typ,numtries, top=5, show=False):
 
+    estis = util.loadfile(taskfilename)[1]
+
+    # LOADS THE RESULTS
+    import os
     data=[]
     for e in range(numtries):
         path= get_optout_fname(typ,e+1)
@@ -195,16 +198,24 @@ def report(aid,typ,numtries, top=5, show=False):
             data.append(util.loadfile(path))
 
 
-    #data= [ util.loadfile(get_optout_fname(typ,e+1)) for e in range(numtries) ]
 
-
+    """
     def cleandata(data):
         for samplist,params in data:
             graphs = [g for e in samplist for g in e.graphs]
             if len(graphs)> 0:
                 yield (esti.decision_function(vectorize(graphs,n_jobs=1)).mean() , params)
+    """
+    # ITERATES OVER DATA, RETURNS (SCORE, PARAMS) for each entry
+    def cleandata(data):
+        for samplist,params in data:
+
+            r= [esti.decision_function(vectorize(repeat.graphs) )  for esti,repeat in zip(estis, samplist)]
+            yield ( np.array(r).mean(), params)
+
 
     results= [a for a in cleandata(data)]
+
 
     print "%d of %d experiments crashed" % ( numtries-len(results),  numtries)
 
