@@ -209,9 +209,10 @@ def report(taskfilename,typ,numtries, top=5, show=False):
     # ITERATES OVER DATA, RETURNS (SCORE, PARAMS) for each entry
     def cleandata(data):
         for samplist,params in data:
-
-            r= [esti.decision_function(vectorize(repeat.graphs) )  for esti,repeat in zip(estis, samplist)]
-            yield ( np.array(r).mean(), params)
+            #print samplist, params
+            r= [esti.decision_function(vectorize(repeat.graphs) )  for esti,repeat in zip(estis, samplist) if repeat.graphs]
+            #print r
+            yield ( np.array(np.concatenate(r)).mean(), params)
 
 
     results= [a for a in cleandata(data)]

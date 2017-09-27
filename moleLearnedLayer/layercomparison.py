@@ -19,14 +19,21 @@ def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], sel
     '''
     pos,neg = util.getgraphs(aid)
     tasks=[]
+    models=[]
     for size in sizes:
-        repeatsXposnegsamples = util.sample_pos_neg(pos,neg,size,size,repeats)
+        repeatsXposnegsamples,estis = util.sample_pos_neg_ESTI(pos,neg,size,size,repeats)
+        models.append(estis)
         for i, sampler in enumerate(util.get_all_samplers(params=params, select=selectsamplers)):
             for j, (pos_sample, neg_sample) in enumerate(repeatsXposnegsamples):
                 tasks.append(util.task(i,size,j,sampler,neg_sample,pos_sample))
 
-    util.dumpfile(tasks,"%s_%d" % (aid,max(sizes)))
-    return "%s_%d" % (aid,max(sizes))
+
+
+    fname = "%s_%d" % (aid,max(sizes))
+    util.dumpfile(tasks,fname)
+    util.dumpfile(models,fname+"_models" )
+
+    return fname
 
 def showtask(filename, taskid):
     tasks= util.loadfile(filename)
@@ -93,10 +100,12 @@ def samplerid_to_samplername(i):
     return {0:'noabstr',1:'learned',2:"hand"}[i]
 
 
-def evalandshow(aid,fname,tasknum,show=False):
-    oracle = util.aid_to_linmodel(aid)
+def evalandshow(fname,tasknum,show=False):
+    #oracle = util.aid_to_linmodel(aid)
+
     res = readresults(fname,tasknum)
     processed = eval(res,oracle)
+
     draw(processed,fname+"score.png", show=show)
     draw(processed,fname+"time.png",get_mean=lambda x:x.time_mean,get_var=lambda x:x.time_var, show=show)
 
