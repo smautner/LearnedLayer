@@ -78,11 +78,11 @@ def get_learned_samplers_params():
         "group_score_threshold": random.random() # WAT?
     }
 
-    learn_params= {     'dbscan_range': .75,
+    learn_params= {     'dbscan_range': .6,
                         #'vectorizer_cluster': eden.graph.Vectorizer(complexity=3, n_jobs=1, inner_normalization=True,
                         #                                            normalization=True),
                         'depth': random.randint(2,4),
-                        'group_score_threshold': random.randint(5,40)/100.0,
+                        'group_score_threshold': random.randint(5,11)/100.0,
                         'min_clustersize': 5,  # this is an exclusive parameter :)
                         'max_group_size': 7,
                         'min_group_size': 2}
@@ -210,7 +210,7 @@ def report(taskfilename,typ,numtries, top=5, show=False):
     def cleandata(data):
         for samplist,params in data:
             #print samplist, params
-            r= [esti.decision_function(vectorize(repeat.graphs) )  for esti,repeat in zip(estis, samplist) if repeat.graphs]
+            r= [esti.decision_function(util.vectorize(repeat.graphs) )  for esti,repeat in zip(estis, samplist) if repeat.graphs]
             #print r
             yield ( np.array(np.concatenate(r)).mean(), params)
 
@@ -233,6 +233,7 @@ def report(taskfilename,typ,numtries, top=5, show=False):
     pprint.pprint(best)
     pprint.pprint(worst)
 
+    return results[:top]
 
 
 

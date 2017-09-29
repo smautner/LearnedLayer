@@ -8,6 +8,9 @@ from sklearn.utils import shuffle
 from collections import Counter
 from scipy.optimize import curve_fit
 
+
+import layercomparison as lc
+
 #########
 # histogram
 ####
@@ -26,15 +29,28 @@ def loadgraphs(fname):
     res.sort(key=lambda x: x[2])
     return res
 
+def loadgraphs(fname,taskcount):
+    lc.readresults(fname, taskcount)
 
-def histo(data,aid):
-    oracle = util.aid_to_linmodel(aid)
 
-    for seeds,gen,size,repeat in data:
-        print "size: %d   repeat: %d" % (size,repeat)
 
-        seed= util.graphs_to_scores(seeds,oracle)
-        gen = util.graphs_to_scores(gen,oracle)
+
+def histo(fname,sizes,taskcount):
+
+    oracles = util.loadfile(fname+"_models")
+    odict = lc._get_odict(oracles,sizes)
+
+    sampled = lc.readresults(fname,taskcount)
+    tasks= util.loadfile(fname)
+
+    hs = lambda s: s.samplerid+s.size+s.repeat*10000
+    taskindex = { hs(t):t  for t in tasks  }
+
+
+    for sampld in sampled:
+        print "size: %d   repeat: %d" % (sampld.size,sampld.repeat)
+        seed = util.graphs_to_scores( taskindex(sampld).pos , odict[sampld.size][sampld.repeat] )
+        gen = util.graphs_to_scores(  sampld.graphs,  odict[sampld.size][sampld.repeat] )
 
         plt.figure(figsize=(12,6))
         plt.hist((seed,gen), 20, normed=1, alpha=.8,histtype='step', stacked=False, fill=True,label=['seed','generated'])

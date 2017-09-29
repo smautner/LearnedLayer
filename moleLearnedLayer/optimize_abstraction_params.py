@@ -29,7 +29,7 @@ def optimize(graphs, depth,graph_num,num_tries_per_depth_level=30):
                 if solution[1] > best_solution[1]:
                     best_solution=solution
         else:
-            p=Pool(20)
+            p=Pool(25)
             res= [ eden.apply_async(p,test_repeats,(trans,graphs,2) ) for i in range(num_tries_per_depth_level) ] # solution = test_repeats(trans, graphs, repeats=5)
             p.close()
             for r in res:
@@ -56,7 +56,7 @@ def test_repeats(trans, graphs, repeats=3, graph_num=600):
     try:
         SIZEHALF = graph_num/2
         # need to pick parameters to test...
-        trans.score_threshold, trans.cluster_classifier.dbscan_range =  random.uniform(0.05,0.55), random.uniform(0.55,0.95)
+        trans.score_threshold, trans.cluster_classifier.dbscan_range =  random.uniform(0.03,0.3), random.uniform(0.35,0.80)
         trans.prepfit()
         # train and get acc REPEAT times...
         accs=[]
@@ -69,7 +69,7 @@ def test_repeats(trans, graphs, repeats=3, graph_num=600):
             accs.append(test_once(ex, graphss, graphs))
 
 
-        return (ex,np.array(accs).mean())
+        return (ex,np.array(accs).mean()-np.array(accs).var())
     except:
         return (trans,0)
 

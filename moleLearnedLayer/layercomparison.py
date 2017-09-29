@@ -1,4 +1,5 @@
 
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,21 +45,28 @@ def run(filename, taskid):
     try:
         result = util.sample(tasks[taskid])
     except Exception as exc:
-        print "molelearnedlayer is showing the task object:"
-        print tasks[taskid]
-        import traceback
-        print traceback.format_exc(20)
+        print "molelearnedlayer except"
+        #print tasks[taskid]
+        #import traceback
+        #print traceback.format_exc(20)
         return None
-    util.dumpfile(result,"res_%s_%d" % (filename,taskid))
+    util.dumpfile(result,getresfilename(filename,taskid))
 
 
 ###################
 #n EVALUATE
 ##################
+def getresfilename(filename,taskid):
+    return "res_%s_%d" % (filename,taskid)
 
 def readresults(filename,taskcount):
-    return [util.loadfile( "res_%s_%d"  %(filename,i)) for i in range(taskcount) ]
-
+    #return [util.loadfile( "res_%s_%d"  %(filename,i)) for i in range(taskcount) ]
+    data=[]
+    for e in range(taskcount):
+        path= getresfilename(filename,e)
+        if os.path.exists(path):
+            data.append(util.loadfile(path))
+    return data
 
 def getcol(procress):
     coldict={1:'#F94D4D',
@@ -67,12 +75,21 @@ def getcol(procress):
     return coldict[procress.samplerid]
 
 
-def eval(res,oracle):
+def _get_odict(oracles,sizes):
+    odict={}
+    for oracle_allrepeats,size in zip(oracles,sizes):
+        odict[size]={i:esti for i,esti in enumerate(oracle_allrepeats)  }
+    return odict
+def eval(res,oracles,sizes):
     processed=[]
+
+    odict=_get_odict(oracles,sizes)
+
     for byrepeats in toolz.groupby(lambda x:x.samplerid+x.size, res).values():
+
         time=np.array([ x.time for x in byrepeats ])
-        graphs = [g for x in byrepeats for g in x.graphs ]
-        scores = graphs_to_scores(graphs, oracle)
+        scores= np.concatenate( [ util.graphs_to_scores(x.graphs,odict[x.size][x.repeat])  for x in byrepeats ] )
+
         processed.append( util.processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var())  )
     return processed
 
@@ -100,11 +117,11 @@ def samplerid_to_samplername(i):
     return {0:'noabstr',1:'learned',2:"hand"}[i]
 
 
-def evalandshow(fname,tasknum,show=False):
+def evalandshow(fname,tasknum,sizes,show=False):
     #oracle = util.aid_to_linmodel(aid)
 
     res = readresults(fname,tasknum)
-    processed = eval(res,oracle)
+    processed = eval(res,util.loadfile(fname+"_models"),sizes)
 
     draw(processed,fname+"score.png", show=show)
     draw(processed,fname+"time.png",get_mean=lambda x:x.time_mean,get_var=lambda x:x.time_var, show=show)
