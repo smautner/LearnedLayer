@@ -68,16 +68,19 @@ We can repeat this process on the abstracted graphs to obtain another level (lay
 These new \textbf{layers can not be used in the GraphLearn system} as we presented it. 
 Since vertices are either untouched or merged via an edge as one traverses the layers,
 it is easy to see which vertices on the seed graphs $G$ belong to which vertices on the
-top layer $G'$. With this knowledge in mind one can discard the in between layers; and 
-we proceed with the modifications to the grammar.
-Cores and interfaces can now be defined exploiting $G'$.
-Starting from a CIP (Core Interface Pair) extracted from the coarser graph $G$, 
-we define the core as the sub graph induced by the vertices of
-the original graph that have been contracted to vertices of the core of radius
-$R$ in the coarse graph, $C_R^v(G',G)$. The new interface graph
+top layer $G'$. We denote this vertex image $\phi: G' \rightarrow G $. With this knowledge in mind one 
+can discard the in between layers. The previously presented concepts of Core and Interface
+graphs will now be updated to incorporate $G$ and $G'$.
+Starting from a CIP (Core Interface Pair) extracted from the abstract graph $G'$ as 
+described earlier, we now define the new core graph as the sub graph induced by the vertices of
+the seed graph that have been contracted to vertices of the core of radius
+$R$ in the coarse graph, $C_R^v(G',G)$ is the graph induced by 
+$\{ \phi(u)  | u \in C_R^v(G') \}$. 
+
+The new interface graph
 $I_{R,B}^v(G',G)$ is defined as the Cartesian product of the graph induced by
 the nodes adjacent to the core nodes in $G$ at maximal distance $B$ (the
-thickness in the base graph) and the interface graph on the coarse graph. In
+thickness in the seed graph) and the interface graph on the coarse graph. In
 words, we require that both the interface at base level and at coarse level
 match for a core swap to take place.
 
