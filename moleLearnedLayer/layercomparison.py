@@ -13,7 +13,7 @@ import util
 from moleLearnedLayer.util import graphs_to_scores
 
 
-def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], selectsamplers=[0,1,2]):
+def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], selectsamplers=[0,1,2], taskfile_poststring=''):
     '''
     we drop lots of these in 1 file:
     task = namedtuple("task",'samplerid size repeat sampler neg pos')
@@ -30,10 +30,9 @@ def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], sel
 
 
 
-    fname = "%s_%d" % (aid,max(sizes))
+    fname = "%s_%d%s" % (aid,max(sizes), taskfile_poststring)
     util.dumpfile(tasks,fname)
     util.dumpfile(models,fname+"_models" )
-
     return fname
 
 def showtask(filename, taskid):
