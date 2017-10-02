@@ -187,7 +187,7 @@ def evalandshow(fname,tasknum,sizes,show=False):
     res = readresults(fname,tasknum)
     processed = eval(res,util.loadfile(fname+"_models"),sizes)
 
-    draw(processed,fname+"score.png", show=show)
+    draw2(processed,fname+"score.png", show=show)
     draw(processed,fname+"time.png",get_mean=lambda x:x.time_mean,get_var=lambda x:x.time_var, show=show)
 
 
