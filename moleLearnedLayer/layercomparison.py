@@ -79,6 +79,9 @@ def _get_odict(oracles,sizes):
     for oracle_allrepeats,size in zip(oracles,sizes):
         odict[size]={i:esti for i,esti in enumerate(oracle_allrepeats)  }
     return odict
+
+
+
 def eval(res,oracles,sizes):
     processed=[]
 
@@ -87,14 +90,18 @@ def eval(res,oracles,sizes):
     for byrepeats in toolz.groupby(lambda x:x.samplerid+x.size, res).values():
 
         time=np.array([ x.time for x in byrepeats ])
-        scores= np.concatenate( [ util.graphs_to_scores(x.graphs,odict[x.size][x.repeat])  for x in byrepeats ] )
 
-        processed.append( util.processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var())  )
+        scores_by_rep =  [ util.graphs_to_scores(x.graphs,odict[x.size][x.repeat])  for x in byrepeats ]
+        scores= np.concatenate( scores_by_rep )
+
+        processed.append( util.processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var(), [e.mean for e in scores_by_rep])  )
     return processed
 
-def draw(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda x:x.score_var,show=False): # see runner :)
-    plt.figure(figsize=(15,5))
 
+
+def draw(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda x:x.score_var,show=False): # see runner :)
+    # this is shitty and boring, but it works atm..
+    plt.figure(figsize=(15,5))
     for oneline in toolz.groupby(lambda x:x.samplerid, processed).values():
         oneline.sort(key=lambda x:x.size)
         sizes = [x.size for x in oneline]
@@ -109,6 +116,64 @@ def draw(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda 
     plt.savefig(filename)
     if show:
         plt.show()
+
+
+def draw2(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda x:x.score_var,show=False):
+    # the plan is to remove the shades, add dots and regress the curve..  also needs logistic regression and a legend
+    plt.figure(figsize=(15,5))
+
+
+    # loop over curves...
+    for oneline in toolz.groupby(lambda x:x.samplerid, processed).values():
+
+        # X,y values for fitting curve
+        oneline.sort(key=lambda x:x.size)
+        sizes = [x.size for x in oneline]
+        y_values = np.array([get_mean(x) for x in oneline])
+        func = xy_to_curve(sizes,y_values)
+
+        # color and legend
+        legend= samplerid_to_samplername(oneline[0].samplerid)
+        col = getcol(oneline[0])
+
+
+        # draw curve
+        show_x=np.array(range(0,1000))
+        plt.plot(show_x, [func(show) for show in show_x], label=legend, color=col) #same as line above \/
+
+        # also draw the subresults
+
+        def getsubres():
+            for procress in oneline:
+                for repeatscore in procress.score_sub_means:
+                    yield(procress.size,repeatscore)
+
+        subres= zip(*list(getsubres()))
+        plt.plot(subres[0], subres[1], color=col)
+
+    plt.legend()
+    plt.savefig(filename)
+    if show:
+        plt.show()
+
+
+
+def xy_to_curve(X,y):
+    '''
+    # functions
+    def func(x, a, b,c):
+        return a*((x-c)**b)
+    '''
+    def func(x,a,b,c):
+        return(  a+b/(x**c)  )
+    # fit
+    from scipy.optimize import curve_fit
+    popt, pcov = curve_fit(func, X, y)
+    return  lambda x:func(x,*popt)
+
+
+
+
 
 
 def samplerid_to_samplername(i):

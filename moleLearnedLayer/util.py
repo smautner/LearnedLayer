@@ -30,7 +30,7 @@ def vectorize(instances):
 sampled = namedtuple("sampled",'samplerid,size,repeat,time, graphs')
 task = namedtuple("task",'samplerid size repeat sampler neg pos')
 task2 = namedtuple("task2",'samplerid size repeat sampler neg pos negtest postest')
-processed_result=namedtuple("processed_result","samplerid, size, score_mean, score_var, time_mean, time_var")
+processed_result=namedtuple("processed_result","samplerid, size, score_mean, score_var, time_mean, time_var, score_sub_means")
 
 
 #########
