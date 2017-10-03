@@ -225,7 +225,9 @@ def quickfit(aid,size,params, skipgrammar=False):
 
 def graphs_to_scores(graphs, oracle):
     graphs = vectorize(graphs)
-    scores = oracle.predict_proba(graphs)
+    
+
+    scores = oracle.predict_proba(graphs)[:,int(1==oracle.classes_[1])] # intcast might supress warning..
     return scores
 
 

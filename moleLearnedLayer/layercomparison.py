@@ -30,7 +30,7 @@ def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], sel
 
 
 
-    fname = "%s_%d%s" % (aid,max(sizes), taskfile_poststring)
+    fname = "%s/%d%s" % (aid,max(sizes), taskfile_poststring)
     util.dumpfile(tasks,fname)
     util.dumpfile(models,fname+"_models" )
     return fname
@@ -56,7 +56,7 @@ def run(filename, taskid):
 #n EVALUATE
 ##################
 def getresfilename(filename,taskid):
-    return "res_%s_%d" % (filename,taskid)
+    return "%s_res_%d" % (filename,taskid)
 
 def readresults(filename,taskcount):
     #return [util.loadfile( "res_%s_%d"  %(filename,i)) for i in range(taskcount) ]
@@ -94,7 +94,9 @@ def eval(res,oracles,sizes):
         scores_by_rep =  [ util.graphs_to_scores(x.graphs,odict[x.size][x.repeat])  for x in byrepeats ]
         scores= np.concatenate( scores_by_rep )
 
-        processed.append( util.processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var(), [e.mean for e in scores_by_rep])  )
+        processed.append( util.processed_result(byrepeats[0].samplerid,byrepeats[0].size,scores.mean(),scores.var(),time.mean(),time.var(), [e.mean() for e in scores_by_rep])  )
+
+
     return processed
 
 
@@ -112,7 +114,7 @@ def draw(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda 
                          alpha=0.15, linewidth=0,label='%s' % samplerid_to_samplername(oneline[0].samplerid))
         plt.plot(sizes,y_values,color=col)
 
-    plt.legend()
+    plt.legend(loc=4)
     plt.savefig(filename)
     if show:
         plt.show()
@@ -130,7 +132,8 @@ def draw2(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda
         oneline.sort(key=lambda x:x.size)
         sizes = [x.size for x in oneline]
         y_values = np.array([get_mean(x) for x in oneline])
-        func = xy_to_curve(sizes,y_values)
+
+        #func = xy_to_curve(sizes,y_values)
 
         # color and legend
         legend= samplerid_to_samplername(oneline[0].samplerid)
@@ -138,8 +141,11 @@ def draw2(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda
 
 
         # draw curve
-        show_x=np.array(range(0,1000))
-        plt.plot(show_x, [func(show) for show in show_x], label=legend, color=col) #same as line above \/
+        #show_x=np.array(range(0,1000))
+        #plt.plot(show_x, [func(show) for show in show_x], label=legend, color=col) #same as line above \/
+        plt.plot(sizes, y_values, label=legend, color=col) #same as line above \/
+
+
 
         # also draw the subresults
 
@@ -149,9 +155,11 @@ def draw2(processed,filename, get_mean = lambda x: x.score_mean , get_var=lambda
                     yield(procress.size,repeatscore)
 
         subres= zip(*list(getsubres()))
-        plt.plot(subres[0], subres[1], color=col)
+        plt.plot(subres[0], subres[1],'o', color=col)
 
-    plt.legend()
+
+
+    plt.legend(loc='lower right')
     plt.savefig(filename)
     if show:
         plt.show()
@@ -169,6 +177,7 @@ def xy_to_curve(X,y):
     # fit
     from scipy.optimize import curve_fit
     popt, pcov = curve_fit(func, X, y)
+    print "popt:", popt
     return  lambda x:func(x,*popt)
 
 
@@ -178,7 +187,7 @@ def xy_to_curve(X,y):
 
 def samplerid_to_samplername(i):
     # see clean make  util -> make samplers chem if the order is awrite:)
-    return {0:'noabstr',1:'learned',2:"hand"}[i]
+    return {0:'Default',1:'Learned',2:"Cycles"}[i]
 
 
 def evalandshow(fname,tasknum,sizes,show=False):
@@ -188,6 +197,7 @@ def evalandshow(fname,tasknum,sizes,show=False):
     processed = eval(res,util.loadfile(fname+"_models"),sizes)
 
     util.dumpfile((processed,fname,show),"ASASD")
+
     draw2(processed,fname+"score.png", show=show)
     draw(processed,fname+"time.png",get_mean=lambda x:x.time_mean,get_var=lambda x:x.time_var, show=show)
 

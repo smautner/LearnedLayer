@@ -14,4 +14,6 @@
 #$ -o out_stdout
 #$ -e out_stderr
 
-python ../optimize.py task_bursi_100_100_4 $1 $SGE_TASK_ID  
+
+# optimize.py TASKFILE TYP TASKNUM
+python ../optimize.py task_651610_100_100_4 $1 $SGE_TASK_ID  

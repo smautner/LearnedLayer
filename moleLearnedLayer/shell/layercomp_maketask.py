@@ -2,8 +2,8 @@ from moleLearnedLayer import layercomparison as lc
 from moleLearnedLayer import util
 
 aid="bursi"
-sizes=[50,100,200,400,800]
-repeats=3
+sizes=[50,100,200,300,400,600,800]
+repeats=5
 opts = [util.loadfile("TOP5_%d" % i) for i in range(3)  ]
 
 
@@ -14,4 +14,5 @@ if __name__ == "__main__":
 
     print taskfiles
     print 'tasknum: %d' % ( len(sizes)*repeats*3)
+    print "see layercomp_run.sh"
 

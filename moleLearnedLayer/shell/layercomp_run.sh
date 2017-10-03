@@ -14,4 +14,5 @@
 #$ -o out_stdout
 #$ -e out_stderr
 
+# layercomp.py  TASKFILE 
 python ../layercomparison.py  $1 $SGE_TASK_ID  
