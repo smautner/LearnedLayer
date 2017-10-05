@@ -94,7 +94,7 @@ def get_graph_stack(aid="651610", overeight_graph_num=600):
     return util.sample_pos_neg_no_duplicates(a,b,overeight_graph_num,4)
 
 
-def optimize(graphs, depth,graph_num,num_tries_per_depth_level=30):
+def optimize_old(graphs, depth,graph_num,num_tries_per_depth_level=30):
     casc = Cascade(depth=depth,debug=False,max_group_size=20)
     casc.setup_transformers()
     # optimize each level of the cascade
