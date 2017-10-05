@@ -68,7 +68,10 @@ def eva(filename, tasknum):
     stuffs = [ util.loadfile("oap/%s_%d" % (filename,i)) for i in range(tasknum)]
 
     stuffs.sort(reverse=True)
+
+    util.dumpfile(stuffs[:5],'oap/top5_%s' % filename)
     pprint.pprint(stuffs[0][1])
+    pprint.pprint(stuffs[1][1])
 
 
 if __name__ == '__main__':
