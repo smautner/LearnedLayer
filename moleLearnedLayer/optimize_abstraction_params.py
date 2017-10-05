@@ -38,9 +38,15 @@ def getacc( pos,neg, post,negt ):
     return acc
 
 
-def getsampler(param):
+
+
+def getsamplerparam(param):
     paramz=optimize.get_default_samplers_params()
     paramz['learn_params']=param
+    return paramz
+
+def getsampler(param):
+    paramz=getsamplerparam(param)
     return util.get_casc_abstr(kwargs=paramz)
 
 def run(filename, taskid):
