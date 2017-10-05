@@ -104,7 +104,7 @@ def draw(numtasks,taskfilename, show=True):
 
     plt.legend()
 
-    #plt.savefig()
+    plt.savefig("%s.png" % taskfilename)
     if show:
         plt.show()
 
