@@ -26,7 +26,7 @@ def getparams():
     return {     'dbscan_range': random.uniform(.5,.7),
                         'depth': random.randint(2,4),
                         'group_score_threshold': random.randint(3,17)/100.0,
-                        'min_clustersize': random.randint(10,100)/1000,  # this is an exclusive parameter :)
+                        'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
                         'max_group_size': random.randint(6,10),
                         'min_group_size': random.randint(2,4)}
 
