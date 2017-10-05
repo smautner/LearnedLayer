@@ -208,8 +208,11 @@ def sample(task, debug_fit=False,skipgrammar=False):
     return sampled(task.samplerid,task.size,task.repeat,time.time()-start,graphs)
 
 
-
-
+def sample_pn(taskk):
+    #task = namedtuple("task",'samplerid size repeat sampler neg pos')
+    pos=sample(taskk)
+    neg=sample(task(taskk.samplerid,taskk.size,taskk.repeat,taskk.sampler, taskk.pos,taskk.neg ))
+    return pos,neg
 
 def quickfit(aid,size,params, skipgrammar=False):
     sampler = get_casc_abstr(kwargs=params)
@@ -225,7 +228,7 @@ def quickfit(aid,size,params, skipgrammar=False):
 
 def graphs_to_scores(graphs, oracle):
     graphs = vectorize(graphs)
-    scores = oracle.predict_proba(graphs)
+    scores = oracle.predict_proba(graphs)[:,0]
     return scores
 
 

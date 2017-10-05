@@ -1,4 +1,5 @@
 import numpy as np
+import pprint
 import util
 from graphlearn01.learnedlayer.cascade import Cascade
 import copy
@@ -6,7 +7,78 @@ import random
 from multiprocessing import Pool
 import eden
 from graphlearn01.utils import draw
+import sklearn
+import optimize
 
+
+
+
+# HERE IS THE NEW FABI PLAN
+
+def maketasks(aid, size, test,repeats,filename):
+    pos,neg= util.getgraphs(aid)
+    repeatsXposnegsamples = util.sample_pos_neg(pos,neg,size+test,size+test,repeats)
+    repeatsXposnegsamples = [ [pos2[:size],neg2[:size],pos2[size:], neg2[size:] ]  for pos2,neg2 in repeatsXposnegsamples]
+    util.dumpfile(repeatsXposnegsamples,filename)
+
+
+def getparams():
+    return {     'dbscan_range': random.uniform(.5,.7),
+                        'depth': random.randint(2,4),
+                        'group_score_threshold': random.randint(3,17)/100.0,
+                        'min_clustersize': random.randint(10,100)/1000,  # this is an exclusive parameter :)
+                        'max_group_size': random.randint(6,10),
+                        'min_group_size': random.randint(2,4)}
+
+def getacc( pos,neg, post,negt ):
+    esti= util.graphs_to_linmodel(pos,neg)
+    X,y = util.graphs_to_Xy(post,negt)
+    ypred = esti.predict(X)
+    acc = sklearn.metrics.accuracy_score(y,ypred)
+    return acc
+
+
+def getsampler(param):
+    paramz=optimize.get_default_samplers_params()
+    paramz['learn_params']=param
+    return util.get_casc_abstr(kwargs=paramz)
+
+def run(filename, taskid):
+    tasks = util.loadfile(filename)
+    param = getparams()
+
+
+
+    scores=[]
+    for a in tasks:
+        sampler=getsampler(param)
+        pos,neg, testpos,testneg =  a
+        alltrain = [sampler.decomposer.make_new_decomposer(data).pre_vectorizer_graph()
+                   for data in sampler.graph_transformer.fit_transform(pos,neg,
+                        remove_intermediary_layers=False)]
+        alltest= [sampler.decomposer.make_new_decomposer(data).pre_vectorizer_graph()
+                   for data in sampler.graph_transformer.transform(testpos+testneg,remove_intermediary_layers=False)]
+        s= len(pos)
+        ss=len(testpos)
+        scores.append(  getacc( alltrain[:s],alltrain[s:],alltest[:ss],alltest[ss:]))
+
+    util.dumpfile((np.median(scores),param),"oap/%s_%d" % (filename,taskid))
+
+def eva(filename, tasknum):
+    stuffs = [ util.loadfile("oap/%s_%d" % (filename,i)) for i in range(tasknum)]
+
+    stuffs.sort(reverse=True)
+    pprint.pprint(stuffs[0][1])
+
+
+if __name__ == '__main__':
+    # yep optimize.py GRAPHFILE TYPE ID
+    import sys
+    run(sys.argv[1] , int(sys.argv[2])-1)
+
+# BELOW SHOULD BE JUST CRAP
+############################################
+#######################################################3
 
 def get_graph_stack(aid="651610", overeight_graph_num=600):
     a,b=util.getgraphs(aid)
@@ -84,4 +156,7 @@ def test_once(ex, graphss, graphs):
     re = [ex.transform(graphs[a][b]) for a,b in [(2,0),(2,1),(3,0),(3,1)]]
     acc= util.graphs_to_acc(*re)
     return acc
+
+
+
 

@@ -27,9 +27,6 @@ def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], sel
         for i, sampler in enumerate(util.get_all_samplers(params=params, select=selectsamplers)):
             for j, (pos_sample, neg_sample) in enumerate(repeatsXposnegsamples):
                 tasks.append(util.task(i,size,j,sampler,neg_sample,pos_sample))
-
-
-
     fname = "%s_%d%s" % (aid,max(sizes), taskfile_poststring)
     util.dumpfile(tasks,fname)
     util.dumpfile(models,fname+"_models" )

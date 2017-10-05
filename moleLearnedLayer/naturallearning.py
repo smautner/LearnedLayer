@@ -71,7 +71,7 @@ def comparisondata_to_histo(fname,aid):
 
 def learning_curve_wrap(aid, train_sizes):
     p,n = util.getgraphs(aid)
-    size=min(len(p),len(n))
+    size= min(len(p),len(n))
     p,n = util.sample_pos_neg(p,n,size,size,repeats=1)[0]
     X,y = util.graphs_to_Xy(p,n)
     X,y = shuffle(X,y)
@@ -114,7 +114,7 @@ def xy_to_curve(X,y):
         return np.power(b/(y-a),1.0/c)
 
     # fit
-    popt, pcov = curve_fit(func, X, y)
+    popt, pcov = curve_fit(func, X, y, method='dogbox')
     #print popt , "1st element is a, second is b -> now its easy to find the x to a y "
 
 
@@ -160,7 +160,7 @@ def lastplot(func,x,y):
 
 
 
-
+#
 def make_task_file2(aid='1834',sizes=[50,75,100],test=50,repeats=2,params=[{},{},{}], selectsamplers=[0,1,2]):
     '''
     we drop lots of these in 1 file:
@@ -171,12 +171,12 @@ def make_task_file2(aid='1834',sizes=[50,75,100],test=50,repeats=2,params=[{},{}
     tasks=[]
     for size in sizes:
         repeatsXposnegsamples = util.sample_pos_neg(pos,neg,size+test,size+test,repeats)
-        repeatsXposnegsamples = [ [pos2[:size],neg2[:size],pos2[size:], neg2[:size] ]  for pos2,neg2 in repeatsXposnegsamples]
+        repeatsXposnegsamples = [ [pos2[:size],neg2[:size],pos2[size:], neg2[size:] ]  for pos2,neg2 in repeatsXposnegsamples]
         for i, sampler in enumerate(util.get_all_samplers(params=params, select=selectsamplers)):
             for j, (pos_sample, neg_sample ,pos_test,neg_test) in enumerate(repeatsXposnegsamples):
                 tasks.append(util.task2(i,size,j,sampler,neg_sample,pos_sample,neg_test,pos_test))
 
-    util.dumpfile(tasks,"t2_%s_%d" % (aid,max(sizes)))
+    util.dumpfile(tasks,"natlearn/t2_%s_%d" % (aid,max(sizes)))
     return "t2_%s_%d" % (aid,max(sizes))
 
 
@@ -190,7 +190,7 @@ def gettask(tasks,idd):
         return util.task( task.samplerid,task.size,task.repeat,task.sampler,task.pos,task.neg)
 
 def run(filename, taskid):
-    tasks = util.loadfile(filename)
+    tasks = util.loadfile("natlearn/"+filename)
     task=gettask(tasks,taskid)
     try:
         result = util.sample(task)
@@ -201,7 +201,7 @@ def run(filename, taskid):
         print traceback.format_exc(20)
         return None
 
-    util.dumpfile(result,"res_%s_%d" % (filename,taskid))
+    util.dumpfile(result,"natlearn/res_%s_%d" % (filename,taskid))
 
 
 if __name__ == '__main__':
