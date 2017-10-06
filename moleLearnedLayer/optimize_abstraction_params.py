@@ -70,8 +70,20 @@ def run(filename, taskid):
 
     util.dumpfile((np.median(scores),param),"oap/%s_%d" % (filename,taskid))
 
+
+
+import os
+def loadstuff(filename, tasknum):
+    for i in range(tasknum):
+        fname = "oap/%s_%d" % (filename,i)
+        if os.path.exists(fname):
+            yield util.loadfile(fname)
+        else:
+            print "failed to load: %d" % i
+
 def eva(filename, tasknum):
-    stuffs = [ util.loadfile("oap/%s_%d" % (filename,i)) for i in range(tasknum)]
+    stuffs =list(loadstuff(filename,tasknum))
+
 
     stuffs.sort(reverse=True)
 
