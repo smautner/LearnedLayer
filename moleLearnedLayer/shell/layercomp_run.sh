@@ -8,7 +8,7 @@
 #$ -V    
 #$ -R y
 #$ -M mautner@cs.uni-freiburg.de
-#$ -t 1-45
+#$ -t 46-105
 #$ -m a 
 #$ -m s 
 #$ -o out_stdout
