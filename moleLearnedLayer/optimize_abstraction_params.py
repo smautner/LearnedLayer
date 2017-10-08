@@ -22,13 +22,24 @@ def maketasks(aid, size, test,repeats,filename):
     util.dumpfile(repeatsXposnegsamples,filename)
 
 
-def getparams():
+
+def getparams(): # high scoring connected components
+    return {     'dbscan_range': random.uniform(.5,.7),
+                 'depth': random.randint(2,4),
+                 'group_score_threshold': random.randint(15,85)/100.0,
+                 'max_group_size': random.randint(6,10),
+                 'min_group_size': random.randint(2,5)}
+
+
+def getparams_cutter():
     return {     'dbscan_range': random.uniform(.5,.7),
                         'depth': random.randint(2,4),
                         'group_score_threshold': random.randint(3,17)/100.0,
                         'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
                         'max_group_size': random.randint(6,10),
                         'min_group_size': random.randint(2,4)}
+
+
 
 def getacc( pos,neg, post,negt ):
     esti= util.graphs_to_linmodel(pos,neg)

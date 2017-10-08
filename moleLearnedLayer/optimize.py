@@ -78,15 +78,12 @@ def get_learned_samplers_params():
         "group_score_threshold": random.random() # WAT?
     }
 
-    learn_params= {     'dbscan_range': .6,
-                        #'vectorizer_cluster': eden.graph.Vectorizer(complexity=3, n_jobs=1, inner_normalization=True,
-                        #                                            normalization=True),
+    learn_params= {'dbscan_range': random.uniform(.5,.7),
                         'depth': random.randint(2,4),
-                        'group_score_threshold': random.randint(5,11)/100.0,
-                        'min_clustersize': 5,  # this is an exclusive parameter :)
-                        'max_group_size': 7,
-                        'min_group_size': 2}
-
+                        'group_score_threshold': random.randint(3,17)/100.0,
+                        'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
+                        'max_group_size': random.randint(6,10),
+                        'min_group_size': random.randint(2,4)}
     params['learn_params'] = learn_params
 
     return params
