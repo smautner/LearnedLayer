@@ -30,7 +30,7 @@ def make_task_file(aid='1834',sizes=[50,75,100],repeats=2,params=[{},{},{}], sel
 
 
 
-    fname = "%s/%d%s" % (aid,max(sizes), taskfile_poststring)
+    fname = "%s_%d%s" % (aid,max(sizes), taskfile_poststring)
     util.dumpfile(tasks,fname)
     util.dumpfile(models,fname+"_models" )
     return fname

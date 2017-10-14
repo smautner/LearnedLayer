@@ -12,7 +12,6 @@ def make_task(aid, sizes=[50,100,150], test=100,repeats=3, params={},postname=''
     for size in sizes:
         getsize=size+test
         for i,(p,n) in enumerate(util.sample_pos_neg(pos,neg,getsize,getsize,repeats)):
-            print len(p),len(n)
             sampler = util.get_casc_abstr(kwargs=params)
             tasks.append(util.task2(1,size,i,sampler,n[:size],p[:size],n[size:],p[size:]))
 
@@ -78,8 +77,8 @@ def run2(fname,idd):
 def draw(numtasks,taskfilename, show=True):
     plt.figure(figsize=(15,5))
 
+    def plod(prefix='stacked/',col='red',label='nolabel'):
 
-    def plod(prefix='stacked/',col='red'):
         res= [ util.loadfile("%s%s_%d" % (prefix,taskfilename,e)) for e in range(numtasks) ]
         rez= toolz.groupby(lambda x:x[0], res)
         keys=rez.keys()
@@ -96,18 +95,61 @@ def draw(numtasks,taskfilename, show=True):
         #print y_values, y_variances
         plt.fill_between(keys, y_values+y_variances , y_values -y_variances, facecolor=col,
                              alpha=0.15)
-        plt.plot(keys,y_values,color=col)
-    plod()
-    plod("stacked/s_",'blue')
-    plod("stacked/2_",'yellow')
+        plt.plot(keys,y_values,color=col,label=label)
 
+    plod(label='All Layers')
+    plod("stacked/s_",'blue',label='Default')
+    plod("stacked/2_",'yellow',label='No Intermediate Layers')
 
-    plt.legend()
-
+    #plt.grid(color='r', linestyle='-', linewidth=2)  # this is how to grid appearently
+    plt.legend(loc='lower right')
+    plt.title("ACC Learned Layers")
+    plt.ylabel("accuracy")
+    plt.xlabel("Number of train graphs")
     plt.savefig("%s.png" % taskfilename)
     if show:
         plt.show()
 
+def draw_combined(numtasks,taskfilenames=[],show=True):
+    plt.figure(figsize=(15,5))
+
+    def plod(prefix='stacked/',col='red',label='nolabel'):
+
+        res= [ util.loadfile("%s%s_%d" % (prefix,taskfilename,e)) for e in range(numtasks) for taskfilename in taskfilenames ]
+        rez= toolz.groupby(lambda x:x[0], res)
+        keys=rez.keys()
+        keys.sort()
+        y_values=[]
+        ##y_variances=[]
+        perc25=[]
+        perc75=[]
+        for key in keys:
+            values=np.array([ val for (crap, val) in rez[key]])
+            #print values
+            y_values.append(np.median(values))
+            perc25.append(np.percentiles(values,25))
+            perc75.append(np.percentiles(values,75))
+
+            ##y_variances.append(values.var())
+        y_values=np.array(y_values)
+        ##y_variances=np.array(y_variances)
+        #print y_values, y_variances
+        plt.fill_between(keys, perc25 , perc75, facecolor=col,
+                             alpha=0.15)
+        plt.plot(keys,y_values,color=col,label=label)
+
+    plod(label='All Layers')
+    plod("stacked/s_",'blue',label='Default')
+    plod("stacked/2_",'yellow',label='No Intermediate Layers')
+
+    plt.grid(color='black', linestyle='-', linewidth=.5)  # this is how to grid appearently
+    plt.legend(loc='lower right')
+    plt.title("ACC Learned Layers")
+    plt.ylabel("accuracy")
+    plt.xlabel("Number of train graphs")
+    plt.savefig("RAINBOW.png" )
+    if show:
+        plt.show()
 
 
 if __name__ == '__main__':

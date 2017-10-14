@@ -23,21 +23,111 @@ def maketasks(aid, size, test,repeats,filename):
 
 
 
-def getparams(): # high scoring connected components
+def getparams_best(): # high scoring connected components
     return {     'dbscan_range': random.uniform(.5,.7),
-                 'depth': random.randint(2,4),
-                 'group_score_threshold': random.randint(15,85)/100.0,
+                 'depth': random.randint(1,4),
+                 'group_score_threshold': random.randint(50,90)/100.0,
                  'max_group_size': random.randint(6,10),
                  'min_group_size': random.randint(2,5)}
 
 
-def getparams_cutter():
+
+def getparams_best_interface(): # bet and use the interface stuff
     return {     'dbscan_range': random.uniform(.5,.7),
-                        'depth': random.randint(2,4),
+                 'depth': random.randint(1,4),
+                 'clusterclassifier':"interface_keep",
+                 'subgraphextraction':"best_interface",
+                 'group_score_threshold': random.randint(50,90)/100.0,
+                 'min_clustersize': random.randint(2,15),  # this is an exclusive parameter :)
+                 'max_group_size': random.randint(6,10),
+                 'min_group_size': random.randint(2,5)}
+
+
+def getparams_best_iftrick(): # best, iftrick
+    return {
+                        'subgraphextraction':"best_interface",
+                        'clusterclassifier':"interface_nocluster",
+                        'depth': random.randint(1,4),
+                        'min_clustersize': random.randint(5,25),  # this is an exclusive parameter :)
+                        'group_score_threshold': random.randint(50,90)/100.0,
+                        'max_group_size': random.randint(6,10),
+                        'min_group_size': random.randint(2,4)}
+
+
+
+
+def getparams_cutter_interface():  # cutter interface
+    return {            'subgraphextraction':"cut_interface",
+                        'clusterclassifier':"lotsofclassifiers",
+                        'dbscan_range': random.uniform(.4,.6),
+                        'depth': random.randint(1,4),
                         'group_score_threshold': random.randint(3,17)/100.0,
                         'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
                         'max_group_size': random.randint(6,10),
                         'min_group_size': random.randint(2,4)}
+
+
+
+
+
+def getparams_cutter_iftrick():
+    return {            'subgraphextraction':"cut_interface",
+                        'clusterclassifier':"interface_nocluster",
+                        'depth': random.randint(1,4),
+                        'group_score_threshold': random.randint(3,17)/100.0,
+                        'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
+                        'max_group_size': random.randint(6,10),
+                        'min_group_size': random.randint(2,4)}
+
+
+
+def getparams_cutter():
+    return {            'subgraphextraction':"cut",
+                        'group_score_threshold': random.randint(3,17)/100.0,
+                        'dbscan_range': random.uniform(.5,.7),
+                        'depth': random.randint(1,4),
+                        'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
+                        'max_group_size': random.randint(6,10),
+                        'min_group_size': random.randint(2,4)}
+
+
+
+
+
+
+def gget_special():
+    d={
+        'subgraphextraction':random.choice( ["cut","best_interface" , 'best', 'cut_interface'])
+    }
+
+    if 'best' in d['subgraphextraction']:
+        d['group_score_threshold']=  random.randint(50,90)/100.0
+    else:
+        d['group_score_threshold'] = random.randint(3,17)/100.0
+
+    if 'interface' in d['subgraphextraction']:
+        d['clusterclassifier'] = random.choice(["interface_nocluster",'interface_keep'])
+    else:
+        d['clusterclassifier'] = random.choice(["keep",'nokeep'])
+    return d
+
+
+
+def gget_basic_params():
+    return {            'dbscan_range': random.uniform(.5,.7),
+                        'depth': random.randint(1,4),
+                        'min_clustersize': random.randint(5,100)/1000.0,  # this is an exclusive parameter :)
+                        'max_group_size': random.randint(6,10),
+                        'min_group_size': random.randint(2,4)}
+
+def getanyparams():
+
+    params= gget_basic_params()
+    params.update(gget_special())
+    #prog = random.choice([getparams_best,getparams_best_iftrick, getparams_best_interface, getparams_cutter, getparams_cutter_iftrick, getparams_cutter_interface])
+    return params
+
+
 
 
 
@@ -60,53 +150,101 @@ def getsampler(param):
     paramz=getsamplerparam(param)
     return util.get_casc_abstr(kwargs=paramz)
 
-def run(filename, taskid):
+
+def get_compression(composers):
+
+
+    compscores= [ len(alllayers[0]) / float(len(alllayers[-1]))  for alllayers in map(lambda x: x.get_layers(),composers) ]
+    return 1 - np.median(compscores)
+
+def run(filename, taskid , getparams="ERROR TERROR"):
     tasks = util.loadfile(filename)
-    param = getparams()
 
-
+    if getparams == 'all':
+        param = getanyparams()
+    else:
+        param = eval("getparams_"+getparams+"()")
 
     scores=[]
+    scores_debug=[]
+    crossvalscores=[]
+    scoreinfo=[]
     for a in tasks:
         sampler=getsampler(param)
         pos,neg, testpos,testneg =  a
-        alltrain = [sampler.decomposer.make_new_decomposer(data).pre_vectorizer_graph()
+
+        alltrain_composer = [sampler.decomposer.make_new_decomposer(data)
                    for data in sampler.graph_transformer.fit_transform(pos,neg,
                         remove_intermediary_layers=False)]
-        alltest= [sampler.decomposer.make_new_decomposer(data).pre_vectorizer_graph()
+
+        alltrain = map(lambda x : x.pre_vectorizer_graph(), alltrain_composer)
+
+        alltest_composer = [sampler.decomposer.make_new_decomposer(data)
                    for data in sampler.graph_transformer.transform(testpos+testneg,remove_intermediary_layers=False)]
+
+        alltest = map(lambda x : x.pre_vectorizer_graph(),alltest_composer)
+
         s= len(pos)
         ss=len(testpos)
-        scores.append(  getacc( alltrain[:s],alltrain[s:],alltest[:ss],alltest[ss:]))
 
-    util.dumpfile((np.median(scores),param),"oap/%s_%d" % (filename,taskid))
+
+        score =  getacc( alltrain[:s],alltrain[s:],alltest[:ss],alltest[ss:])
+        score2 = get_compression(alltest_composer)
+        alpha = .9
+        scores.append(alpha*score+(1-alpha)*score)
+
+        scoreinfo.append( 'acc:%.4f   compression:%.4f' % (score,score2) )
+
+        scores_debug.append(getacc(  alltrain[:s],alltrain[s:],alltrain[:s],alltrain[s:] ))
+        crossvalscores.append( sklearn.model_selection.cross_val_score(sklearn.linear_model.SGDClassifier(loss='log'), *util.graphs_to_Xy(alltrain[:s],alltrain[s:])).mean())
+
+
+    util.dumpfile((np.median(scores),param, np.median(scores_debug), np.median(crossvalscores), '\n'.join(scoreinfo)),"oap/%s_%d" % (filename,taskid))
+
+    #util.dumpfile(  (np.median(scores_debug), np.median(crossvalscores)),"oap/%s_%d_debug_info" % (filename,taskid))
 
 
 
 import os
 def loadstuff(filename, tasknum):
     for i in range(tasknum):
+
         fname = "oap/%s_%d" % (filename,i)
         if os.path.exists(fname):
             yield util.loadfile(fname)
+
+
         else:
             print "failed to load: %d" % i
 
 def eva(filename, tasknum):
-    stuffs =list(loadstuff(filename,tasknum))
+    data = list(loadstuff(filename,tasknum))
 
 
-    stuffs.sort(reverse=True)
+    data.sort(reverse=True)
 
-    util.dumpfile(stuffs[:5],'oap/top5_%s' % filename)
-    pprint.pprint(stuffs[0][1])
-    pprint.pprint(stuffs[1][1])
+    util.dumpfile(data[:5],'oap/top5_%s' % filename)
+    pprint.pprint(  optimize.merge_dicts([ a[1] for a in data[:5] ]))
+
+    print "score_median", [a[0] for a in data[:5]]
+    print "accuracy_train_median", [a[2] for a in data[:5]]
+    print "crossval_median", [a[3] for a in data[:5]]
+    print "acc and compression", [a[4] for a in data[:5]]
+
+
+def show_best(aid,size=200):
+    filename = "oap/top5_%s_oap_task" % aid
+    bestparams = util.loadfile(filename)[0][1]
+    bestparams['debug']=True
+    params=getsamplerparam(bestparams)
+    util.quickfit(aid, size, params, skipgrammar=True)
+
 
 
 if __name__ == '__main__':
     # yep optimize.py GRAPHFILE TYPE ID
     import sys
-    run(sys.argv[1] , int(sys.argv[2])-1)
+    run(  sys.argv[2] , int(sys.argv[3])-1 , sys.argv[1])
 
 # BELOW SHOULD BE JUST CRAP
 ############################################

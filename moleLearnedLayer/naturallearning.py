@@ -49,7 +49,7 @@ def histo(fname,sizes,taskcount):
 
     for sampld in sampled:
         print "size: %d   repeat: %d" % (sampld.size,sampld.repeat)
-        seed = util.graphs_to_scores( taskindex(sampld).pos , odict[sampld.size][sampld.repeat] )
+        seed = util.graphs_to_scores( taskindex[hs(sampld)].pos , odict[sampld.size][sampld.repeat] )
         gen = util.graphs_to_scores(  sampld.graphs,  odict[sampld.size][sampld.repeat] )
 
         plt.figure(figsize=(12,6))
@@ -58,8 +58,8 @@ def histo(fname,sizes,taskcount):
         plt.show()
 
 
-def comparisondata_to_histo(fname,aid):
-    stuff = loadgraphs(fname)
+def comparisondata_to_histo(fname,aid, count):
+    stuff = loadgraphs(fname,count)
     histo(stuff,aid)
 
 
