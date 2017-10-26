@@ -127,8 +127,8 @@ def draw_combined(numtasks,taskfilenames=[],show=True):
             values=np.array([ val for (crap, val) in rez[key]])
             #print values
             y_values.append(np.median(values))
-            perc25.append(np.percentiles(values,25))
-            perc75.append(np.percentiles(values,75))
+            perc25.append(np.percentile(values,25))
+            perc75.append(np.percentile(values,75))
 
             ##y_variances.append(values.var())
         y_values=np.array(y_values)

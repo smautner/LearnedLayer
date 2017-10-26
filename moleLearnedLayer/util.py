@@ -182,6 +182,21 @@ def get_all_samplers(n_jobs=1,params=[{},{},{}],select=[0,1,2]):
     #print 'samplers are fake atm'
     return samplers
 
+def get_compression(composers):
+
+    '''
+    from graphlearn01.utils import draw
+    for e in [4,8,13]:
+        lay = composers[4].get_layers()
+        draw.graphlearn(lay)
+        print len(lay[0]),len(lay[-1])
+    '''
+    compscores= [ len(alllayers[0]) / float(len(alllayers[-1]))  for alllayers in map(lambda x: x.get_layers(),composers) ]
+
+    #print np.median(compscores)
+    #exit()
+
+    return 1 - np.median(compscores)
 
 def sample(task, debug_fit=False,skipgrammar=False):
     start=time.time()
@@ -191,6 +206,7 @@ def sample(task, debug_fit=False,skipgrammar=False):
                      for data in task.sampler.graph_transformer.fit_transform(task.pos,task.neg)]
 
     if skipgrammar:
+        print "COMPRESSION: %.4f" % get_compression(decomposers)
         return [d._unaltered_graph for d in decomposers]
 
     # fit grammar

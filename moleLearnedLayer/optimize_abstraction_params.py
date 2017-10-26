@@ -26,7 +26,9 @@ def maketasks(aid, size, test,repeats,filename):
 def getparams_best(): # high scoring connected components
     return {     'dbscan_range': random.uniform(.5,.7),
                  'depth': random.randint(1,4),
+                 'subgraphextraction': 'best',
                  'group_score_threshold': random.randint(50,90)/100.0,
+                 'clusterclassifier' : random.choice(["keep",'nokeep']),
                  'max_group_size': random.randint(6,10),
                  'min_group_size': random.randint(2,5)}
 
@@ -83,9 +85,10 @@ def getparams_cutter_iftrick():
 
 def getparams_cutter():
     return {            'subgraphextraction':"cut",
+                        'clusterclassifier' : "keep",
                         'group_score_threshold': random.randint(3,17)/100.0,
                         'dbscan_range': random.uniform(.5,.7),
-                        'depth': random.randint(1,4),
+                        'depth': random.randint(2,3),
                         'min_clustersize': random.randint(10,100)/1000.0,  # this is an exclusive parameter :)
                         'max_group_size': random.randint(6,10),
                         'min_group_size': random.randint(2,4)}
@@ -151,13 +154,8 @@ def getsampler(param):
     return util.get_casc_abstr(kwargs=paramz)
 
 
-def get_compression(composers):
 
-
-    compscores= [ len(alllayers[0]) / float(len(alllayers[-1]))  for alllayers in map(lambda x: x.get_layers(),composers) ]
-    return 1 - np.median(compscores)
-
-def run(filename, taskid , getparams="ERROR TERROR"):
+def run(filename, taskid , getparams="ERROR TERROR", debug=False):
     tasks = util.loadfile(filename)
 
     if getparams == 'all':
@@ -166,16 +164,17 @@ def run(filename, taskid , getparams="ERROR TERROR"):
         param = eval("getparams_"+getparams+"()")
 
     scores=[]
-    scores_debug=[]
-    crossvalscores=[]
     scoreinfo=[]
     for a in tasks:
         sampler=getsampler(param)
+
+
         pos,neg, testpos,testneg =  a
 
         alltrain_composer = [sampler.decomposer.make_new_decomposer(data)
                    for data in sampler.graph_transformer.fit_transform(pos,neg,
                         remove_intermediary_layers=False)]
+
 
         alltrain = map(lambda x : x.pre_vectorizer_graph(), alltrain_composer)
 
@@ -184,22 +183,37 @@ def run(filename, taskid , getparams="ERROR TERROR"):
 
         alltest = map(lambda x : x.pre_vectorizer_graph(),alltest_composer)
 
+
+
         s= len(pos)
         ss=len(testpos)
-
-
         score =  getacc( alltrain[:s],alltrain[s:],alltest[:ss],alltest[ss:])
-        score2 = get_compression(alltest_composer)
+        score2 = util.get_compression(alltest_composer)
+        score3 = util.get_compression(alltrain_composer)
+        if debug:
+            from graphlearn01.utils import draw
+            print param
+            print "press: %.2f   score: %.2f " % (score2,score)
+            for e in [2,30,5]:
+                layers = alltest_composer[e].get_layers()
+                print "graph sizes"+ "\t".join([str(len(z)) for z in layers])
+                draw.graphlearn(layers)
+
         alpha = .9
-        scores.append(alpha*score+(1-alpha)*score)
-
-        scoreinfo.append( 'acc:%.4f   compression:%.4f' % (score,score2) )
-
-        scores_debug.append(getacc(  alltrain[:s],alltrain[s:],alltrain[:s],alltrain[s:] ))
-        crossvalscores.append( sklearn.model_selection.cross_val_score(sklearn.linear_model.SGDClassifier(loss='log'), *util.graphs_to_Xy(alltrain[:s],alltrain[s:])).mean())
+        scores.append(alpha*score+(1-alpha)*score2)
 
 
-    util.dumpfile((np.median(scores),param, np.median(scores_debug), np.median(crossvalscores), '\n'.join(scoreinfo)),"oap/%s_%d" % (filename,taskid))
+        train_acc = getacc(  alltrain[:s],alltrain[s:],alltrain[:s],alltrain[s:] )
+        crossval = sklearn.model_selection.cross_val_score(sklearn.linear_model.SGDClassifier(loss='log'), *util.graphs_to_Xy(alltrain[:s],alltrain[s:])).mean()
+
+        scoreinfo.append( {"accuracy":score,"accuracy_train":train_acc,"crossval":crossval, "compression_test":score2 , 'compression_train':score3} )
+
+    dumpdata= np.median(scores),param,scoreinfo
+    if debug:
+        import pprint
+        pprint.pprint(dumpdata)
+        print "#"*80
+    util.dumpfile(dumpdata,"oap/%s_%d" % (filename,taskid))
 
     #util.dumpfile(  (np.median(scores_debug), np.median(crossvalscores)),"oap/%s_%d_debug_info" % (filename,taskid))
 
@@ -233,11 +247,15 @@ def eva(filename, tasknum):
 
 
 def show_best(aid,size=200):
-    filename = "oap/top5_%s_oap_task" % aid
-    bestparams = util.loadfile(filename)[0][1]
-    bestparams['debug']=True
-    params=getsamplerparam(bestparams)
-    util.quickfit(aid, size, params, skipgrammar=True)
+    filename = "top5_%s_oap_task" % aid
+
+    params = util.loadfile(filename)
+    for e in params: print e
+
+    for param in params:
+        param[1]['debug']=True
+        runparam=getsamplerparam(param[1])
+        util.quickfit(aid, size, runparam, skipgrammar=True)
 
 
 
