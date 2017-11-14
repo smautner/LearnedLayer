@@ -22,7 +22,7 @@ import sklearn
 
 def vectorize(instances):
     vec=Vectorizer()
-    return vec._transform_serial(instances)
+    return vec.transform(instances)
 
 #####
 # structs
