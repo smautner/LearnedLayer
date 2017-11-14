@@ -172,24 +172,27 @@ def run(filename, taskid , getparams="ERROR TERROR", debug=False):
         pos,neg, testpos,testneg =  a
 
         alltrain_composer = [sampler.decomposer.make_new_decomposer(data)
-                   for data in sampler.graph_transformer.fit_transform(pos,neg,
+                   for data in sampler.graph_transformer.fit_transform_2(pos,neg,
                         remove_intermediary_layers=False)]
-
-
         alltrain = map(lambda x : x.pre_vectorizer_graph(), alltrain_composer)
+
+
+
 
         alltest_composer = [sampler.decomposer.make_new_decomposer(data)
                    for data in sampler.graph_transformer.transform(testpos+testneg,remove_intermediary_layers=False)]
-
         alltest = map(lambda x : x.pre_vectorizer_graph(),alltest_composer)
 
+        lenp=len(testpos)
+        lenn=len(testneg)
+        t1,t2,t3,t4 = alltest[:lenp/2], alltest[lenp/2:lenp], alltest[lenp:lenp+lenn/2],alltest[lenp+lenn/2:]
 
 
-        s= len(pos)
-        ss=len(testpos)
-        score =  getacc( alltrain[:s],alltrain[s:],alltest[:ss],alltest[ss:])
+        #score =  getacc( alltrain[:s],alltrain[s:],alltest[:ss],alltest[ss:])
+        score =  getacc( t1,t3,t2,t4)
         score2 = util.get_compression(alltest_composer)
         score3 = util.get_compression(alltrain_composer)
+
         if debug:
             from graphlearn01.utils import draw
             print param
@@ -203,10 +206,11 @@ def run(filename, taskid , getparams="ERROR TERROR", debug=False):
         scores.append(alpha*score+(1-alpha)*score2)
 
 
-        train_acc = getacc(  alltrain[:s],alltrain[s:],alltrain[:s],alltrain[s:] )
-        crossval = sklearn.model_selection.cross_val_score(sklearn.linear_model.SGDClassifier(loss='log'), *util.graphs_to_Xy(alltrain[:s],alltrain[s:])).mean()
+        train_acc = getacc(t1,t3,t1,t3)
+        crossval = sklearn.model_selection.cross_val_score(sklearn.linear_model.SGDClassifier(loss='log'), *util.graphs_to_Xy(t1,t3)).mean()
 
         scoreinfo.append( {"accuracy":score,"accuracy_train":train_acc,"crossval":crossval, "compression_test":score2 , 'compression_train':score3} )
+
 
     dumpdata= np.median(scores),param,scoreinfo
     if debug:
@@ -238,12 +242,15 @@ def eva(filename, tasknum):
     data.sort(reverse=True)
 
     util.dumpfile(data[:5],'oap/top5_%s' % filename)
-    pprint.pprint(  optimize.merge_dicts([ a[1] for a in data[:5] ]))
 
-    print "score_median", [a[0] for a in data[:5]]
-    print "accuracy_train_median", [a[2] for a in data[:5]]
-    print "crossval_median", [a[3] for a in data[:5]]
-    print "acc and compression", [a[4] for a in data[:5]]
+
+    pprint.pprint(  optimize.merge_dicts([ a[1] for a in data[:5] ]))
+    pprint.pprint(data[:5])
+
+    #print "score_median", [a[0] for a in data[:5]]
+    #print "accuracy_train_median", [a[2] for a in data[:5]]
+    #print "crossval_median", [a[3] for a in data[:5]]
+    #print "acc and compression", [a[4] for a in data[:5]]
 
 
 def show_best(aid,size=200):
