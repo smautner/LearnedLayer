@@ -100,7 +100,7 @@ def getparams_cutter():
 
 def gget_special():
     d={
-        'subgraphextraction':random.choice( ["cut","best_interface" , 'best', 'cut_interface'])
+        'subgraphextraction':random.choice( ["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface'])
     }
 
     if 'best' in d['subgraphextraction']:
@@ -112,6 +112,9 @@ def gget_special():
         d['clusterclassifier'] = random.choice(["interface_nocluster",'interface_keep'])
     else:
         d['clusterclassifier'] = random.choice(["keep",'nokeep'])
+
+    if 'soft' in d['subgraphextraction']:
+        d['clusterclassifier'] = 'soft'
     return d
 
 

@@ -37,15 +37,18 @@ def loadgraphs(fname,taskcount):
 
 def histo(fname,sizes,taskcount):
 
+    # getting some estimators
     oracles = util.loadfile(fname+"_models")
     odict = lc._get_odict(oracles,sizes)
 
+    # the generated things
     sampled = lc.readresults(fname,taskcount)
+    # the training stuff i assume
     tasks= util.loadfile(fname)
 
+    # hash:tringraphs
     hs = lambda s: s.samplerid+s.size+s.repeat*10000
     taskindex = { hs(t):t  for t in tasks  }
-
 
     for sampld in sampled:
         print "size: %d   repeat: %d" % (sampld.size,sampld.repeat)
@@ -58,10 +61,13 @@ def histo(fname,sizes,taskcount):
         plt.show()
 
 
+'''
+this seems broken .. also it seems that histo is doint what we want
 def comparisondata_to_histo(fname,aid, count):
     stuff = loadgraphs(fname,count)
-    histo(stuff,aid)
-
+    #histo(stuff,aid)
+    histo(fname,)
+'''
 
 
 
