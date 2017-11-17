@@ -96,12 +96,7 @@ def getparams_cutter():
 
 
 
-
-
-def gget_special():
-    d={
-        'subgraphextraction':random.choice( ["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface'])
-    }
+def gget_special_finalize(d):
 
     if 'best' in d['subgraphextraction']:
         d['group_score_threshold']=  random.randint(50,90)/100.0
@@ -115,6 +110,17 @@ def gget_special():
 
     if 'soft' in d['subgraphextraction']:
         d['clusterclassifier'] = 'soft'
+
+    return d
+
+def gget_special():
+
+    d = {
+        'subgraphextraction':random.choice( ["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface'])
+    }
+
+    d = gget_special_finalize(d)
+
     return d
 
 
@@ -158,13 +164,8 @@ def getsampler(param):
 
 
 
-def run(filename, taskid , getparams="ERROR TERROR", debug=False):
+def run(filename, taskid , param, debug=False):
     tasks = util.loadfile(filename)
-
-    if getparams == 'all':
-        param = getanyparams()
-    else:
-        param = eval("getparams_"+getparams+"()")
 
     scores=[]
     scoreinfo=[]
@@ -272,7 +273,20 @@ def show_best(aid,size=200):
 if __name__ == '__main__':
     # yep optimize.py GRAPHFILE TYPE ID
     import sys
-    run(  sys.argv[2] , int(sys.argv[3])-1 , sys.argv[1])
+    if sys.argv[1]=='test':
+        for i,base in enumerate(["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
+            d = { 'subgraphextraction':base }
+            d= gget_special_finalize(d)
+            # usage 'test' fname,
+            run ( sys.argv[2],str(i), d  )
+    else:
+        # def run(filename, taskid , getparams="ERROR TERROR", debug=False)
+        # normal usage: params, filename, taskid
+        if sys.argv[1] == 'all':
+            param = getanyparams()
+        else:
+            param = eval("getparams_"+sys.argv[1]+"()")
+        run(  sys.argv[2] , int(sys.argv[3])-1 , param)
 
 # BELOW SHOULD BE JUST CRAP
 ############################################
