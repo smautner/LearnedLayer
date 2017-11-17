@@ -95,13 +95,16 @@ def getparams_cutter():
 
 
 
-
-def gget_special_finalize(d):
-
+def set_gr_score_tresh(d):
     if 'best' in d['subgraphextraction']:
         d['group_score_threshold']=  random.randint(50,90)/100.0
     else:
         d['group_score_threshold'] = random.randint(3,17)/100.0
+    return d
+
+
+def gget_special_finalize(d):
+    d=set_gr_score_tresh(d)
 
     if 'interface' in d['subgraphextraction']:
         d['clusterclassifier'] = random.choice(["interface_nocluster",'interface_keep'])
@@ -274,17 +277,40 @@ if __name__ == '__main__':
     # yep optimize.py GRAPHFILE TYPE ID
     import sys
     if sys.argv[1]=='test':
+
         import pprint
-        #def maketasks(aid, size, test,repeats,filename):
         filename = 'stuff'
         maketasks("bursi",600,600,1,filename)
+
+
         for i,base in enumerate(["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
             d= gget_basic_params()
             d['subgraphextraction']= base
-            d= gget_special_finalize(d)
-            pprint.pprint(d)
-            # usage 'test' fname,
-            run ( filename,str(i), d  )
+            d= set_gr_score_tresh(d)
+
+            if 'soft' in base:
+                d['clusterclassifier'] = 'soft'
+                pprint.pprint(d)
+                # usage 'test' fname,
+                run ( filename,i, d  )
+            elif 'interface' in base:
+                d['clusterclassifier'] = 'interface_nocluster'
+                pprint.pprint(d)
+                run ( filename,i, d  )
+                d['clusterclassifier'] = 'interface_keep'
+                pprint.pprint(d)
+                run ( filename,i+10, d  )
+
+            else:
+                d['clusterclassifier'] = 'keep'
+                pprint.pprint(d)
+                run ( filename,i, d  )
+                d['clusterclassifier'] = 'nokeep'
+                pprint.pprint(d)
+                run ( filename,i+10, d  )
+
+        # TODO: some evaluation
+
 
     else:
         # def run(filename, taskid , getparams="ERROR TERROR", debug=False)
