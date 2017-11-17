@@ -274,11 +274,14 @@ if __name__ == '__main__':
     # yep optimize.py GRAPHFILE TYPE ID
     import sys
     if sys.argv[1]=='test':
+        #def maketasks(aid, size, test,repeats,filename):
+        filename = 'stuff'
+        maketasks("bursi",600,600,1,filename)
         for i,base in enumerate(["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
             d = { 'subgraphextraction':base }
             d= gget_special_finalize(d)
             # usage 'test' fname,
-            run ( sys.argv[2],str(i), d  )
+            run ( filename,str(i), d  )
     else:
         # def run(filename, taskid , getparams="ERROR TERROR", debug=False)
         # normal usage: params, filename, taskid
