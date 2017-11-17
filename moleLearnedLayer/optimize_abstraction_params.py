@@ -279,9 +279,9 @@ if __name__ == '__main__':
         filename = 'stuff'
         maketasks("bursi",600,600,1,filename)
         for i,base in enumerate(["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
-            d = { 'subgraphextraction':base }
+            d= gget_basic_params()
+            d['subgraphextraction']= base
             d= gget_special_finalize(d)
-
             pprint.pprint(d)
             # usage 'test' fname,
             run ( filename,str(i), d  )
