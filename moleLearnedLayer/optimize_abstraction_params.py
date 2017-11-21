@@ -283,8 +283,9 @@ if __name__ == '__main__':
         maketasks("bursi",600,600,1,filename)
 
 
-        for i,base in enumerate(["cut","best_interface" , 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
+        for i,base in enumerate(["best_interface" ,'cut', 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
             d= gget_basic_params()
+            d['depth']=2
             d['subgraphextraction']= base
             d= set_gr_score_tresh(d)
 
