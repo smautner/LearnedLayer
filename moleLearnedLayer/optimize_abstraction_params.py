@@ -113,6 +113,7 @@ def gget_special_finalize(d):
 
     if 'soft' in d['subgraphextraction']:
         d['clusterclassifier'] = 'soft'
+        d['interfaceweight'] = random.randint(0,14)-10
 
     return d
 
@@ -282,8 +283,11 @@ if __name__ == '__main__':
         filename = 'stuff'
         maketasks("bursi",600,600,1,filename)
 
+        def ev(filename,num):
+            pprint.pprint( util.loadfile("oap/"+filename+"_"+str(num))[2])
+            print ""
 
-        for i,base in enumerate(["best_interface" ,'cut', 'best', 'cut_interface', 'best_soft_interface','cut_soft_interface']):
+        for i,base in enumerate([ 'cut_soft_interface', 'cut','best_soft_interface',"best","best_interface" , 'cut_interface']):
             d= gget_basic_params()
             d['depth']=2
             d['subgraphextraction']= base
@@ -291,24 +295,30 @@ if __name__ == '__main__':
 
             if 'soft' in base:
                 d['clusterclassifier'] = 'soft'
+                d['interfaceweight'] = random.randint(0,14)-10
                 pprint.pprint(d)
                 # usage 'test' fname,
                 run ( filename,i, d  )
+                ev(filename,i)
             elif 'interface' in base:
                 d['clusterclassifier'] = 'interface_nocluster'
                 pprint.pprint(d)
                 run ( filename,i, d  )
+                ev(filename,i)
                 d['clusterclassifier'] = 'interface_keep'
                 pprint.pprint(d)
                 run ( filename,i+10, d  )
+                ev(filename,i+10)
 
             else:
-                d['clusterclassifier'] = 'keep'
-                pprint.pprint(d)
-                run ( filename,i, d  )
                 d['clusterclassifier'] = 'nokeep'
                 pprint.pprint(d)
+                run ( filename,i, d  )
+                ev(filename,i)
+                d['clusterclassifier'] = 'keep'
+                pprint.pprint(d)
                 run ( filename,i+10, d  )
+                ev(filename,i+10)
 
         # TODO: some evaluation
 
